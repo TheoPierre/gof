@@ -771,3 +771,33 @@ button {
     transition: none !important;
   }
 }
+
+/* Bascule de langue, dans le fil d'Ariane des pages de contenu. */
+.lang-switch {
+  float: right;
+  display: flex;
+  gap: 8px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.lang-switch a {
+  color: var(--zp-muted);
+  text-decoration: none;
+}
+
+.lang-switch a:hover {
+  color: var(--zp-amber);
+  text-decoration: underline;
+}
+
+.lang-switch a[aria-current='true'] {
+  color: var(--zp-amber);
+  font-weight: 600;
+}
+
+.lang-switch a:focus-visible {
+  outline: 2px solid var(--zp-amber);
+  outline-offset: 2px;
+  border-radius: 2px;
+}

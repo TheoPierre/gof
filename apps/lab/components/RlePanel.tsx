@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react';
 
 import { decodeRle } from '@zp/codecs';
 
+import { getDict, type Locale } from '../lib/i18n';
+
 interface Props {
+  locale: Locale;
   /** RLE de la grille courante, renvoyé par le worker après « Exporter ». */
   exported: string | null;
   onRequestExport: () => void;
@@ -12,7 +15,8 @@ interface Props {
   onClose: () => void;
 }
 
-export default function RlePanel({ exported, onRequestExport, onImport, onClose }: Props) {
+export default function RlePanel({ locale, exported, onRequestExport, onImport, onClose }: Props) {
+  const t = getDict(locale).panel;
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -30,7 +34,7 @@ export default function RlePanel({ exported, onRequestExport, onImport, onClose 
       // champ, plutôt que d'attendre l'aller-retour avec le worker.
       const pattern = decodeRle(text);
       if (pattern.cells.length === 0) {
-        setError('Ce motif ne contient aucune cellule vivante.');
+        setError(t.emptyPattern);
         return;
       }
       setError(null);
@@ -46,7 +50,7 @@ export default function RlePanel({ exported, onRequestExport, onImport, onClose 
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      setError("Le presse-papiers a été refusé. Sélectionne le texte et copie-le à la main.");
+      setError(t.clipboardRefused);
     }
   };
 
@@ -63,10 +67,10 @@ export default function RlePanel({ exported, onRequestExport, onImport, onClose 
   };
 
   return (
-    <aside className="panel" aria-label="Import et export RLE">
+    <aside className="panel" aria-label={t.rleTitle}>
       <div className="panel-head">
-        <span>RLE</span>
-        <button className="icon-btn" onClick={onClose} aria-label="Fermer le panneau RLE">
+        <span>{t.rleTitle}</span>
+        <button className="icon-btn" onClick={onClose} aria-label={t.closeRle}>
           ✕
         </button>
       </div>
@@ -74,12 +78,11 @@ export default function RlePanel({ exported, onRequestExport, onImport, onClose 
       <div className="panel-body">
         <div className="stack">
           <p className="note" style={{ marginTop: 0 }}>
-            Le format d’échange du Jeu de la Vie. Colle un motif du LifeWiki ou de Golly, ou
-            exporte ta grille pour la partager.
+            {t.rleIntro}
           </p>
 
           <label className="sr-only" htmlFor="rle-text">
-            Contenu RLE
+            {t.rleContent}
           </label>
           <textarea
             id="rle-text"
@@ -101,25 +104,24 @@ export default function RlePanel({ exported, onRequestExport, onImport, onClose 
 
           <div className="row">
             <button className="btn" onClick={doImport} disabled={text.trim() === ''}>
-              Importer
+              {t.import}
             </button>
             <button className="btn" onClick={onRequestExport}>
-              Exporter la grille
+              {t.exportGrid}
             </button>
           </div>
 
           <div className="row">
             <button className="btn" onClick={copy} disabled={text.trim() === ''}>
-              {copied ? 'Copié' : 'Copier'}
+              {copied ? t.copied : t.copy}
             </button>
             <button className="btn" onClick={download} disabled={text.trim() === ''}>
-              Télécharger
+              {t.download}
             </button>
           </div>
 
           <p className="note">
-            L’import se pose au centre de la vue. Un caractère inconnu est refusé plutôt que
-            deviné : un motif silencieusement faux vaut moins qu’une erreur franche.
+            {t.rleFooter}
           </p>
         </div>
       </div>

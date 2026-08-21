@@ -6,6 +6,8 @@ import { decodeRle } from '@zp/codecs';
 import { Board, Life, LIFE } from '@zp/engine';
 import { GridRenderer, Viewport, type RenderStyle } from '@zp/render';
 
+import { getDict, type Locale } from '../lib/i18n';
+
 /**
  * Lecteur autonome d'un motif, pour les pages de contenu.
  *
@@ -16,12 +18,15 @@ import { GridRenderer, Viewport, type RenderStyle } from '@zp/render';
 export default function PatternPlayer({
   rle,
   label,
+  locale,
   generationsPerSecond = 10,
 }: {
   rle: string;
   label: string;
+  locale: Locale;
   generationsPerSecond?: number;
 }) {
+  const dict = getDict(locale);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const [running, setRunning] = useState(true);
@@ -114,11 +119,11 @@ export default function PatternPlayer({
   return (
     <figure className="player">
       <div className="player-stage" ref={wrapRef}>
-        <canvas ref={canvasRef} aria-label={`Simulation de ${label}`} role="img" />
+        <canvas ref={canvasRef} aria-label={dict.player.label(label)} role="img" />
       </div>
       <figcaption className="player-bar">
         <button className="btn" onClick={() => setRunning((r) => !r)}>
-          {running ? '⏸ Pause' : '▶ Lancer'}
+          {running ? dict.lab.pause : dict.lab.run}
         </button>
         <button
           className="btn"
@@ -127,10 +132,10 @@ export default function PatternPlayer({
             setResetKey((k) => k + 1);
           }}
         >
-          ↺ Reprendre
+          {dict.player.restart}
         </button>
         <span className="player-gen">
-          Génération <b>{generation.toLocaleString('fr-FR')}</b>
+          {dict.lab.generation} <b>{generation.toLocaleString(dict.locale)}</b>
         </span>
       </figcaption>
     </figure>

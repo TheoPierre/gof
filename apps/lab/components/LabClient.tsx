@@ -2,6 +2,8 @@
 
 import dynamic from 'next/dynamic';
 
+import type { Locale } from '../lib/i18n';
+
 /**
  * Le Labo n'est jamais rendu côté serveur.
  *
@@ -15,24 +17,21 @@ import dynamic from 'next/dynamic';
  * avant que React n'hydrate — une divergence sur laquelle on n'a aucune prise,
  * et qui produit des avertissements impossibles à corriger côté application.
  */
-const Lab = dynamic(() => import('./Lab'), {
-  ssr: false,
-  loading: () => <LabSkeleton />,
-});
+const Lab = dynamic(() => import('./Lab'), { ssr: false });
 
-export default function LabClient() {
-  return <Lab />;
+export default function LabClient({ locale }: { locale: Locale }) {
+  return <Lab locale={locale} />;
 }
 
 function LabSkeleton() {
   return (
     <div className="lab" aria-busy="true">
       <div className="toolbar">
-        <span className="badge">Initialisation du moteur…</span>
+        <span className="badge">…</span>
       </div>
       <div className="workspace">
         <div className="stage">
-          <div className="hint">Chargement de la grille.</div>
+          <div className="hint" />
         </div>
       </div>
     </div>

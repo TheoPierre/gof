@@ -112,7 +112,8 @@ Technique :
 
 Produit :
 
-- [ ] Le nom et le domaine sont tranchés (voir « À trancher » dans DECISIONS.md)
+- [x] Nom tranché : Zero Player. Domaine reporté, on reste sur celui de Vercel (D-022).
+- [x] Site bilingue, anglais par défaut — les trois communautés visées le sont (D-025)
 - [x] Attribution LifeWiki visible dans l'interface — en bas à droite de la
       scène, et détaillée sur `/a-propos`
 - [x] Page `/a-propos` : les règles, le projet, les crédits, la vie privée

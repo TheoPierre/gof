@@ -53,7 +53,14 @@ test('les identifiants sont uniques et les catégories connues', () => {
       CATEGORY_ORDER.includes(pattern.category),
       `${pattern.name} : catégorie inconnue ${pattern.category}`,
     );
-    assert.ok(pattern.note.length > 20, `${pattern.name} mérite une vraie description`);
+    // Les deux langues doivent être servies : une description manquante
+    // laisserait une page à moitié traduite en ligne.
+    for (const langue of ['fr', 'en'] as const) {
+      assert.ok(
+        pattern.note[langue].length > 20,
+        `${pattern.name} : description ${langue} absente ou trop courte`,
+      );
+    }
   }
 });
 

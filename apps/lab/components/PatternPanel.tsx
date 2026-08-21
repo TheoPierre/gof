@@ -2,28 +2,30 @@
 
 import { CATALOGUE, CATEGORY_LABELS, CATEGORY_ORDER } from '@zp/content';
 
+import { getDict, type Locale } from '../lib/i18n';
 import PatternPreview from './PatternPreview';
 
 interface Props {
+  locale: Locale;
   armedId: string | null;
   onArm: (id: string, rle: string, name: string) => void;
   onClose: () => void;
 }
 
-export default function PatternPanel({ armedId, onArm, onClose }: Props) {
+export default function PatternPanel({ locale, armedId, onArm, onClose }: Props) {
+  const t = getDict(locale).panel;
   return (
-    <aside className="panel" aria-label="Bibliothèque de motifs">
+    <aside className="panel" aria-label={t.patternsTitle}>
       <div className="panel-head">
-        <span>Motifs</span>
-        <button className="icon-btn" onClick={onClose} aria-label="Fermer la bibliothèque">
+        <span>{t.patternsTitle}</span>
+        <button className="icon-btn" onClick={onClose} aria-label={t.close}>
           ✕
         </button>
       </div>
 
       <div className="panel-body">
         <p className="note" style={{ marginTop: 0 }}>
-          Clique un motif puis clique la grille pour le déposer. Tu peux aussi le glisser
-          directement dessus.
+          {t.patternsIntro}
         </p>
 
         {CATEGORY_ORDER.map((category) => {
@@ -32,7 +34,7 @@ export default function PatternPanel({ armedId, onArm, onClose }: Props) {
 
           return (
             <section key={category}>
-              <h2 className="cat-title">{CATEGORY_LABELS[category]}</h2>
+              <h2 className="cat-title">{CATEGORY_LABELS[category][locale]}</h2>
               <div className="pattern-grid">
                 {patterns.map((pattern) => (
                   <button
@@ -44,7 +46,7 @@ export default function PatternPanel({ armedId, onArm, onClose }: Props) {
                     // lecteur d'écran annonce la description entière — trois
                     // lignes de texte pour choisir une vignette.
                     aria-label={pattern.name}
-                    title={pattern.note}
+                    title={pattern.note[locale]}
                     draggable
                     onDragStart={(event) => {
                       event.dataTransfer.setData('text/plain', pattern.rle);
@@ -54,7 +56,7 @@ export default function PatternPanel({ armedId, onArm, onClose }: Props) {
                   >
                     <PatternPreview rle={pattern.rle} />
                     <span className="pattern-name">{pattern.name}</span>
-                    <span className="pattern-note">{pattern.note}</span>
+                    <span className="pattern-note">{pattern.note[locale]}</span>
                   </button>
                 ))}
               </div>

@@ -7,6 +7,7 @@ import { GridRenderer, Viewport, type RenderStyle } from '@zp/render';
 import { SimulationClient, type SimCommand } from '@zp/worker';
 
 import { startVisit, track, trackOnce } from '../lib/analytics';
+import { getDict, type Locale } from '../lib/i18n';
 import PatternPanel from './PatternPanel';
 import RlePanel from './RlePanel';
 
@@ -17,7 +18,11 @@ type Tool = 'draw' | 'pan';
 type Panel = 'patterns' | 'rle' | null;
 type Armed = { id: string; rle: string; name: string } | null;
 
-export default function Lab() {
+export default function Lab({ locale }: { locale: Locale }) {
+  const dict = getDict(locale);
+  const d = dict.lab;
+  const a = d.announce;
+
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -89,7 +94,7 @@ export default function Lab() {
       } else if (event.type === 'snapshot') {
         setExported(event.rle);
       } else if (event.type === 'error') {
-        announce(`Erreur : ${event.message}`);
+        announce(a.error(event.message));
       }
     });
 
@@ -151,7 +156,7 @@ export default function Lab() {
       if (motif) {
         client.send({ type: 'stamp', rle: motif.rle, x: 256, y: 256 });
         viewport.scale = 8;
-        announce(motif.name + ' chargé depuis sa page.');
+        announce(a.loadedFromPage(motif.name));
       } else {
         client.send({ type: 'randomise', density: 0.3, seed: (Math.random() * 2 ** 31) | 0 });
       }
@@ -239,7 +244,7 @@ export default function Lab() {
       if (armedPattern) {
         stampAt(point, armedPattern.rle);
         setArmed(null);
-        setAnnouncement(`${armedPattern.name} déposé.`);
+        setAnnouncement(a.dropped(armedPattern.name));
         track({ name: 'pattern_placed', pattern: armedPattern.id });
         return;
       }
@@ -292,7 +297,7 @@ export default function Lab() {
       const rle = event.dataTransfer?.getData('text/plain');
       if (!rle) return;
       stampAt(localPoint(event), rle);
-      setAnnouncement('Motif déposé.');
+      setAnnouncement(a.droppedGeneric);
       track({ name: 'pattern_placed', pattern: 'glisser-déposer' });
     };
 
@@ -354,11 +359,7 @@ export default function Lab() {
         .then(() => {
           viewportRef.current.fit(nextSize, nextSize, 24);
           setCursor(null);
-          announce(
-            `Grille ${nextSize} sur ${nextSize}, bords ${
-              nextTopology === 'torus' ? 'recollés' : 'morts'
-            }.`,
-          );
+          announce(a.resized(nextSize, nextTopology === 'torus'));
           track({ name: 'grid_resized', worldSize: nextSize, topology: nextTopology });
         });
     },
@@ -374,7 +375,7 @@ export default function Lab() {
         x: Math.round(viewport.centerX),
         y: Math.round(viewport.centerY),
       });
-      announce('Motif importé au centre de la vue.');
+      announce(a.imported);
       track({ name: 'rle_imported' });
     },
     [send, announce],
@@ -399,10 +400,10 @@ export default function Lab() {
         event.preventDefault();
         if (event.shiftKey) {
           client.send({ type: 'redo' });
-          announce('Rétabli.');
+          announce(a.redone);
         } else {
           client.send({ type: 'undo' });
-          announce('Annulé.');
+          announce(a.undone);
         }
         return;
       }
@@ -436,7 +437,7 @@ export default function Lab() {
         if (!at) return;
         client.send({ type: 'checkpoint' });
         client.send({ type: 'setCells', cells: [[at.x, at.y]], alive: true });
-        announce(`Cellule ${at.x}, ${at.y} allumée.`);
+        announce(a.cellOn(at.x, at.y));
         return;
       }
 
@@ -454,7 +455,7 @@ export default function Lab() {
           break;
         case 'c':
           client.send({ type: 'clear' });
-          announce('Grille vidée.');
+          announce(a.cleared);
           break;
         case 'r':
           client.send({
@@ -462,7 +463,7 @@ export default function Lab() {
             density: 0.3,
             seed: (Math.random() * 2 ** 31) | 0,
           });
-          announce('Nouvelle soupe.');
+          announce(a.newSoup);
           break;
         case 'Escape':
           setArmed(null);
@@ -474,22 +475,20 @@ export default function Lab() {
     return () => globalThis.removeEventListener('keydown', onKey);
   }, [toggleRun, fit, announce]);
 
-  const cursorLabel = cursor
-    ? `Curseur en colonne ${cursor.x}, ligne ${cursor.y}.`
-    : 'Grille du Jeu de la Vie. Utilise les flèches pour déplacer le curseur, Entrée pour allumer une cellule.';
+  const cursorLabel = cursor ? d.cursorAt(cursor.x, cursor.y) : d.canvasLabel;
 
   return (
     <div className="lab">
-      <div className="toolbar" role="toolbar" aria-label="Contrôles de la simulation">
+      <div className="toolbar" role="toolbar" aria-label={d.toolbar}>
         <div className="toolbar-controls">
         <button className="btn" onClick={toggleRun} disabled={!ready}>
-          {running ? '⏸ Pause' : '▶ Lancer'}
+          {running ? d.pause : d.run}
         </button>
         <button className="btn" onClick={() => clientRef.current?.step(1)} disabled={!ready}>
-          ⇥ Pas
+          {d.step}
         </button>
         <button className="btn" onClick={cycleSpeed} disabled={!ready}>
-          {SPEEDS[speedIndex]} gén./s
+          {SPEEDS[speedIndex]} {d.perSecond}
         </button>
 
         <span style={{ width: 6 }} />
@@ -498,10 +497,10 @@ export default function Lab() {
           className="btn"
           onClick={() => {
             send({ type: 'undo' });
-            announce('Annulé.');
+            announce(a.undone);
           }}
           disabled={!canUndo}
-          title="Annuler (Ctrl+Z)"
+          title={d.undoTitle}
         >
           ↶
         </button>
@@ -509,10 +508,10 @@ export default function Lab() {
           className="btn"
           onClick={() => {
             send({ type: 'redo' });
-            announce('Rétabli.');
+            announce(a.redone);
           }}
           disabled={!canRedo}
-          title="Rétablir (Ctrl+Maj+Z)"
+          title={d.redoTitle}
         >
           ↷
         </button>
@@ -523,21 +522,21 @@ export default function Lab() {
           className="btn"
           onClick={() => {
             send({ type: 'clear' });
-            announce('Grille vidée.');
+            announce(a.cleared);
           }}
           disabled={!ready}
         >
-          Vider
+          {d.clear}
         </button>
         <button
           className="btn"
           disabled={!ready}
           onClick={() => {
             send({ type: 'randomise', density: 0.3, seed: (Math.random() * 2 ** 31) | 0 });
-            announce('Nouvelle soupe.');
+            announce(a.newSoup);
           }}
         >
-          Soupe
+          {d.soup}
         </button>
 
         <span style={{ width: 6 }} />
@@ -551,13 +550,13 @@ export default function Lab() {
           ✋
         </button>
         <button className="btn" onClick={fit} disabled={!ready}>
-          ⤢ Cadrer
+          {d.fit}
         </button>
 
         <span style={{ width: 6 }} />
 
         <label className="sr-only" htmlFor="grid-size">
-          Taille de la grille
+          {d.gridSize}
         </label>
         <select
           id="grid-size"
@@ -574,7 +573,7 @@ export default function Lab() {
         </select>
 
         <label className="sr-only" htmlFor="grid-topology">
-          Bords de la grille
+          {d.edges}
         </label>
         <select
           id="grid-topology"
@@ -583,8 +582,8 @@ export default function Lab() {
           disabled={!ready}
           onChange={(event) => reshape(size, event.target.value as 'torus' | 'bounded')}
         >
-          <option value="torus">Bords recollés</option>
-          <option value="bounded">Bords morts</option>
+          <option value="torus">{d.edgesWrap}</option>
+          <option value="bounded">{d.edgesDead}</option>
         </select>
 
         <button
@@ -592,33 +591,33 @@ export default function Lab() {
           aria-pressed={panel === 'patterns'}
           onClick={() => setPanel(panel === 'patterns' ? null : 'patterns')}
         >
-          Motifs
+          {d.patterns}
         </button>
         <button
           className="btn"
           aria-pressed={panel === 'rle'}
           onClick={() => setPanel(panel === 'rle' ? null : 'rle')}
         >
-          RLE
+          {d.rle}
         </button>
         </div>
 
         <div className="toolbar-status">
         <div className="readout" aria-live="off">
           <span>
-            Génération <b>{stats.generation.toLocaleString('fr-FR')}</b>
+            {d.generation} <b>{stats.generation.toLocaleString(locale)}</b>
           </span>
           <span>
-            Vivantes <b>{stats.population.toLocaleString('fr-FR')}</b>
+            {d.alive} <b>{stats.population.toLocaleString(locale)}</b>
           </span>
           <span>
-            Zoom <b>{stats.scale.toFixed(2)}×</b>
+            {d.zoom} <b>{stats.scale.toFixed(2)}×</b>
           </span>
         </div>
         <span
           className="badge"
           data-on={shared}
-          title="Mémoire partagée entre le worker et le rendu"
+          title={d.sharedTitle}
         >
           {shared ? 'SAB' : 'postMessage'}
         </span>
@@ -635,24 +634,25 @@ export default function Lab() {
           />
           <div className="hint">
             {armed
-              ? `${armed.name} — clique la grille pour le déposer, Échap pour annuler`
-              : 'Glisser pour dessiner · Maj pour effacer · Molette pour zoomer · Clic droit pour déplacer · Espace, →, F, C, R'}
+              ? d.hintArmed(armed.name)
+              : d.hint}
           </div>
           <div className="stage-links">
             <a href="https://conwaylife.com/wiki/" rel="noreferrer noopener" target="_blank">
-              Motifs : LifeWiki, CC BY-SA
+              {d.attribution}
             </a>
-            <a href="/motifs">Les motifs</a>
-            <a href="/a-propos">À propos</a>
+            <a href={`/${locale}/patterns`}>{d.allPatterns}</a>
+            <a href={`/${locale}/about`}>{d.about}</a>
           </div>
         </div>
 
         {panel === 'patterns' ? (
           <PatternPanel
+            locale={locale}
             armedId={armed?.id ?? null}
             onArm={(id, rle, name) => {
               setArmed({ id, rle, name });
-              announce(`${name} sélectionné. Clique la grille pour le déposer.`);
+              announce(a.armed(name));
             }}
             onClose={() => setPanel(null)}
           />
@@ -660,6 +660,7 @@ export default function Lab() {
 
         {panel === 'rle' ? (
           <RlePanel
+            locale={locale}
             exported={exported}
             onRequestExport={() => {
               send({ type: 'snapshot' });

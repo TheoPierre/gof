@@ -19,6 +19,18 @@ const config: NextConfig = {
   // Les paquets internes sont livrés en TypeScript brut, sans étape de build.
   transpilePackages: ['@zp/engine', '@zp/codecs', '@zp/worker', '@zp/render', '@zp/content'],
 
+  async redirects() {
+    return [
+      // La racine mène à la langue par défaut.
+      { source: '/', destination: '/en', permanent: false },
+      // Les URL de la version monolingue, brièvement en ligne. Peu d'enjeu de
+      // référencement, mais un lien partagé ne doit pas mourir.
+      { source: '/motifs', destination: '/fr/patterns', permanent: true },
+      { source: '/motif/:slug', destination: '/fr/patterns/:slug', permanent: true },
+      { source: '/a-propos', destination: '/fr/about', permanent: true },
+    ];
+  },
+
   async headers() {
     return [
       {

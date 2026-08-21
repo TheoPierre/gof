@@ -444,6 +444,31 @@ tomber sur du bruit serait absurde.
 
 ---
 
+### D-025 — Bilingue, anglais par défaut
+**2026-08-21**
+
+Le site était entièrement en français alors que le plan de diffusion vise trois
+communautés anglophones — le forum conwaylife.com, r/cellular_automata, Hacker
+News — et que les pages de motifs visent des recherches en anglais.
+
+Tout l'écosystème de ce sujet est anglophone : LifeWiki, Golly, Catagolue, le
+forum. Le volume de recherche n'est pas comparable.
+
+Routes `/en` et `/fr`, l'anglais servi à la racine, un sélecteur sur les pages
+de contenu, `hreflang` sur chaque page pour que les deux langues se complètent
+au lieu de se concurrencer. Les anciennes URL monolingues redirigent en 308.
+
+**Le piège rencontré :** un dictionnaire contenant des fonctions de formatage ne
+peut pas être passé en prop d'un composant serveur à un composant client — il
+faut le sérialiser. Les composants clients reçoivent donc une *langue*, une
+simple chaîne, et vont chercher leur dictionnaire eux-mêmes. C'est aussi plus
+simple à lire.
+
+La documentation et le dépôt restent en français : c'est la langue de travail,
+pas celle du produit.
+
+---
+
 ## À trancher
 - **Licences de contenu.** Le LifeWiki est en CC BY-SA : attribution
   obligatoire, et la clause de partage à l'identique demande un examen pour une
