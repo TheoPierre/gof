@@ -25,6 +25,14 @@ export interface CataloguePattern {
   /** Ce qu'il fait, en une phrase. */
   note: string;
   /**
+   * Ce que le moteur doit mesurer sur ce motif. Un test le vérifie à chaque
+   * exécution : si le RLE est faux ou si le moteur dérive, la suite rougit
+   * plutôt que le site publier une contre-vérité.
+   */
+  population: number;
+  /** Période, pour les oscillateurs et les vaisseaux. */
+  period?: number;
+  /**
    * Titre de la page LifeWiki, si le nom affiché n'y correspond pas. Renvoyer
    * vers la source est dû, et c'est aussi là que se trouve l'histoire
    * complète de chaque motif — qu'on ne recopie pas ici.
@@ -62,6 +70,7 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'nature-morte',
     rle: '2o$2o!',
     note: 'Le motif stable le plus simple, et le plus fréquent dans une soupe aléatoire.',
+    population: 4,
   },
   {
     id: 'beehive',
@@ -69,6 +78,7 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'nature-morte',
     rle: 'b2o$o2bo$b2o!',
     note: 'Deuxième nature morte la plus courante.',
+    population: 6,
   },
   {
     id: 'loaf',
@@ -76,6 +86,7 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'nature-morte',
     rle: 'b2o$o2bo$bobo$2bo!',
     note: 'Une ruche asymétrique. Souvent produite par paires.',
+    population: 7,
   },
   {
     id: 'boat',
@@ -83,6 +94,7 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'nature-morte',
     rle: '2o$obo$bo!',
     note: 'La seule nature morte à cinq cellules.',
+    population: 5,
   },
   {
     id: 'tub',
@@ -90,6 +102,7 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'nature-morte',
     rle: 'bo$obo$bo!',
     note: 'Quatre cellules en losange. Ajoute une cellule et tu obtiens un bateau.',
+    population: 4,
   },
   {
     id: 'ship',
@@ -97,6 +110,47 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'nature-morte',
     rle: '2o$obo$b2o!',
     note: 'Un bateau symétrique. S’allonge en « ship-tie » quand on l’étire.',
+    population: 6,
+  },
+  {
+    id: 'pond',
+    name: 'Pond',
+    category: 'nature-morte',
+    rle: 'b2o$o2bo$o2bo$b2o!',
+    note: 'Un anneau de huit cellules autour d’un trou. Ce que laisse souvent une explosion qui s’éteint.',
+    population: 8,
+  },
+  {
+    id: 'long-boat',
+    name: 'Long boat',
+    category: 'nature-morte',
+    rle: '2o$obo$bobo$2bo!',
+    note: 'Un bateau étiré d’une cellule. La famille continue en long long boat, et ainsi de suite.',
+    population: 7,
+  },
+  {
+    id: 'barge',
+    name: 'Barge',
+    category: 'nature-morte',
+    rle: 'bo$obo$bobo$2bo!',
+    note: 'Une baignoire allongée. Six cellules en escalier.',
+    population: 6,
+  },
+  {
+    id: 'snake',
+    name: 'Snake',
+    category: 'nature-morte',
+    rle: '2obo$ob2o!',
+    note: 'La nature morte la plus plate : deux lignes seulement.',
+    population: 6,
+  },
+  {
+    id: 'eater-1',
+    name: 'Eater 1',
+    category: 'nature-morte',
+    rle: '2o$obo$2bo$2b2o!',
+    note: 'Le mangeur d’hameçon : il absorbe un planeur et se reconstruit. La brique défensive de base.',
+    population: 7,
   },
 
   // ───────────────────────── Oscillateurs ─────────────────────────
@@ -106,6 +160,8 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'oscillateur',
     rle: '3o!',
     note: 'Période 2. L’oscillateur le plus simple, et le plus fréquent.',
+    population: 3,
+    period: 2,
   },
   {
     id: 'toad',
@@ -113,6 +169,8 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'oscillateur',
     rle: 'b3o$3o!',
     note: 'Période 2. Deux rangées décalées qui se replient l’une sur l’autre.',
+    population: 6,
+    period: 2,
   },
   {
     id: 'beacon',
@@ -120,6 +178,8 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'oscillateur',
     rle: '2o$2o$2b2o$2b2o!',
     note: 'Période 2. Deux blocs qui se touchent puis se séparent.',
+    population: 8,
+    period: 2,
   },
   {
     id: 'pulsar',
@@ -127,6 +187,8 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'oscillateur',
     rle: '2b3o3b3o2$o4bobo4bo$o4bobo4bo$o4bobo4bo$2b3o3b3o2$2b3o3b3o$o4bobo4bo$o4bobo4bo$o4bobo4bo2$2b3o3b3o!',
     note: 'Période 3, 13×13. Le grand oscillateur le plus courant.',
+    population: 48,
+    period: 3,
   },
   {
     id: 'pentadecathlon',
@@ -134,6 +196,8 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'oscillateur',
     rle: '2bo4bo2b$2ob4ob2o$2bo4bo2b!',
     note: 'Période 15. Découvert par Conway en faisant évoluer une rangée de dix cellules.',
+    population: 12,
+    period: 15,
   },
   {
     id: 'koks-galaxy',
@@ -141,6 +205,26 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'oscillateur',
     rle: '6ob2o$6ob2o$7b2o$2o5b2o$2o5b2o$2o5b2o$2o$2ob6o$2ob6o!',
     note: 'Période 8. Une spirale qui se retourne sur elle-même. Trouvée par Jan Kok en 1971.',
+    population: 48,
+    period: 8,
+  },
+  {
+    id: 'clock',
+    name: 'Clock',
+    category: 'oscillateur',
+    rle: '2bo$obo$bobo$bo!',
+    note: 'Période 2. Quatre cellules qui basculent autour de deux pivots.',
+    population: 6,
+    period: 2,
+  },
+  {
+    id: 'figure-eight',
+    name: 'Figure eight',
+    category: 'oscillateur',
+    rle: '3o$3o$3o$3b3o$3b3o$3b3o!',
+    note: 'Période 8. Deux carrés de neuf cellules qui se défont et se refont en diagonale.',
+    population: 18,
+    period: 8,
   },
 
   // ───────────────────────── Vaisseaux ─────────────────────────
@@ -150,6 +234,8 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'vaisseau',
     rle: 'bo$2bo$3o!',
     note: 'Se translate d’une case en diagonale toutes les 4 générations. Le motif emblématique.',
+    population: 5,
+    period: 4,
   },
   {
     id: 'lwss',
@@ -157,6 +243,8 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'vaisseau',
     rle: 'bo2bo$o$o3bo$4o!',
     note: 'Avance de deux cases à l’horizontale toutes les 4 générations.',
+    population: 9,
+    period: 4,
   },
   {
     id: 'mwss',
@@ -164,6 +252,8 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'vaisseau',
     rle: '3bo$bo3bo$o$o4bo$5o!',
     note: 'Même vitesse que le LWSS, une cellule de plus.',
+    population: 11,
+    period: 4,
   },
   {
     id: 'hwss',
@@ -171,6 +261,8 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'vaisseau',
     rle: '3b2o$bo4bo$o$o5bo$6o!',
     note: 'Le plus lourd des trois vaisseaux classiques.',
+    population: 13,
+    period: 4,
   },
 
   // ───────────────────────── Mathusalems ─────────────────────────
@@ -180,6 +272,7 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'mathusalem',
     rle: 'b2o$2o$bo!',
     note: 'Cinq cellules, 1 103 générations, 116 cellules à l’arrêt. Six planeurs s’en échappent.',
+    population: 5,
   },
   {
     id: 'diehard',
@@ -187,6 +280,7 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'mathusalem',
     rle: '6bo$2o$bo3b3o!',
     note: 'Sept cellules qui s’éteignent entièrement à la génération 130. Pas une de plus.',
+    population: 7,
   },
   {
     id: 'acorn',
@@ -194,6 +288,7 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'mathusalem',
     rle: 'bo$3bo$2o2b3o!',
     note: 'Sept cellules, 5 206 générations, 633 cellules à l’arrêt.',
+    population: 7,
   },
 
   // ───────────────────────── Croissance infinie ─────────────────────────
@@ -204,6 +299,7 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'croissance',
     rle: '24bo$22bobo$12b2o6b2o12b2o$11bo3bo4b2o12b2o$2o8bo5bo3b2o$2o8bo3bob2o4bobo$10bo5bo7bo$11bo3bo$12b2o!',
     note: 'Lâche un planeur toutes les 30 générations, indéfiniment. Bill Gosper, 1970 — le premier motif à croissance infinie découvert.',
+    population: 36,
   },
   {
     id: 'infinite-growth-5x5',
@@ -211,6 +307,7 @@ export const CATALOGUE: CataloguePattern[] = [
     category: 'croissance',
     rle: '3obo$o$3b2o$b2obo$obobo!',
     note: 'Le plus petit motif connu tenant dans un carré 5×5 dont la population croît sans fin.',
+    population: 13,
   },
 ];
 

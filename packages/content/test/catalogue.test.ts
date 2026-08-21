@@ -10,9 +10,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { Board, Life, LIFE } from '@zp/engine';
+import { analyse, Board, Life, LIFE } from '@zp/engine';
 import { decodeRle } from '@zp/codecs';
-
 import { CATALOGUE, CATEGORY_ORDER, type CataloguePattern } from '../src/index.ts';
 
 /** Forme normalisée sur son coin haut-gauche : compare des formes, pas des positions. */
@@ -158,5 +157,43 @@ test('le canon de Gosper lâche un planeur toutes les 30 générations', () => {
   for (let period = 1; period <= 5; period++) {
     life.run(30);
     assert.equal(life.board.population(), 36 + 5 * period, `après ${period * 30} générations`);
+  }
+});
+
+test('les valeurs déclarées correspondent à ce que le moteur mesure', () => {
+  // Le filet le plus serré du catalogue. Une catégorie juste ne prouve rien —
+  // un RLE erroné peut rester « un oscillateur » tout en étant un autre motif.
+  // La population et la période, elles, ne pardonnent pas.
+  //
+  // Trois candidats sur dix ont été écartés grâce à ce contrôle avant d'être
+  // publiés : leur RLE, écrit de mémoire, ne donnait pas le motif annoncé.
+  for (const pattern of CATALOGUE) {
+    const measured = analyse(decodeRle(pattern.rle).cells, { maxGenerations: 100 });
+
+    assert.equal(
+      measured.population,
+      pattern.population,
+      `${pattern.name} : ${measured.population} cellules mesurées, ${pattern.population} déclarées`,
+    );
+
+    if (pattern.period !== undefined) {
+      assert.equal(
+        measured.period,
+        pattern.period,
+        `${pattern.name} : période ${measured.period} mesurée, ${pattern.period} déclarée`,
+      );
+    }
+
+    // La catégorie annoncée doit correspondre au comportement observé, pour
+    // les familles dont le comportement est décidable en cent générations.
+    const expected: Record<string, string | undefined> = {
+      'nature-morte': 'still-life',
+      oscillateur: 'oscillator',
+      vaisseau: 'spaceship',
+    };
+    const attendu = expected[pattern.category];
+    if (attendu) {
+      assert.equal(measured.kind, attendu, `${pattern.name} est classé ${pattern.category}`);
+    }
   }
 });
