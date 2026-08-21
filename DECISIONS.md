@@ -479,9 +479,9 @@ n'a qu'un coup d'œil.
 
 Deux réserves respectées :
 
-- **** coupe le démarrage automatique. C'est une
+- **`prefers-reduced-motion`** coupe le démarrage automatique. C'est une
   animation permanente, exactement ce que ce réglage vise.
-- **Ce démarrage n'est pas compté** comme un  : l'événement
+- **Ce démarrage n'est pas compté** comme un `simulation_started` : l'événement
   ne doit mesurer que les lancements voulus, sinon il vaut 100 % et ne dit plus
   rien.
 
