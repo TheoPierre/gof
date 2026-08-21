@@ -38,6 +38,21 @@ L'hébergeur du plan. Rien de particulier à configurer :
    le dossier de sortie `.next` — le chemin standard, volontairement (D-017).
 4. Node 24 dans les réglages du projet — le monorepo l'exige.
 
+### Mesure d'audience : deux outils, deux questions
+
+**Vercel Web Analytics** est branchée (`@vercel/analytics`, composant
+`<Analytics />` dans le layout). L'activer dans le tableau de bord ne suffit
+pas : sans le paquet et le composant, rien ne remonte.
+
+Elle répond à *combien de gens, d'où, sur quel appareil*. Elle ne répond pas
+aux questions de comportement — la création prend-elle, passe-t-on des pages de
+motifs au Labo, la mémoire partagée tient-elle chez les vrais visiteurs. C'est
+le rôle de `lib/analytics.ts`, qui dort tant qu'aucune clé n'est configurée.
+
+Compatibilité COEP vérifiée : en production le script est servi depuis la même
+origine ; en développement il vient de `va.vercel-scripts.com`, qui renvoie
+`Cross-Origin-Resource-Policy: cross-origin` et passe donc `require-corp`.
+
 ### Variables d'environnement
 
 Une seule compte, et elle décide de la valeur du test de marché :

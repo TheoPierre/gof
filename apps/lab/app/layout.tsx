@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/next';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
@@ -38,7 +39,20 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body>{children}</body>
+      <body>
+        {children}
+        {/*
+          Mesure d'audience Vercel : pages vues, provenance, pays, appareil.
+          Sans cookie. Le script est servi depuis la même origine, il passe
+          donc l'en-tête COEP require-corp sans aménagement.
+
+          Elle répond à « combien de gens, d'où ». Les questions de
+          comportement — la création prend-elle, passe-t-on des pages de motifs
+          au Labo, la mémoire partagée tient-elle chez les vrais visiteurs —
+          restent du ressort de lib/analytics.ts.
+        */}
+        <Analytics />
+      </body>
     </html>
   );
 }
