@@ -38,7 +38,18 @@ L'hébergeur du plan. Rien de particulier à configurer :
    le dossier de sortie `.next` — le chemin standard, volontairement (D-017).
 4. Node 24 dans les réglages du projet — le monorepo l'exige.
 
-Aucune variable d'environnement n'est nécessaire à ce stade.
+### Variables d'environnement
+
+Une seule compte, et elle décide de la valeur du test de marché :
+
+| Variable | Effet |
+|---|---|
+| `NEXT_PUBLIC_POSTHOG_KEY` | Active la mesure d'audience. **Sans elle, rien n'est envoyé et les huit semaines ne mesurent rien.** |
+| `NEXT_PUBLIC_POSTHOG_HOST` | `https://eu.i.posthog.com` par défaut — région UE. |
+
+Voir [`apps/lab/.env.example`](apps/lab/.env.example). Ce qui est mesuré, et
+comment, est décrit en clair sur la page `/a-propos` du site : sans cookie,
+sans stockage, sans capture automatique, et `Do Not Track` respecté.
 
 ### La règle à retenir sur le monorepo
 
@@ -84,10 +95,13 @@ Technique :
 Produit :
 
 - [ ] Le nom et le domaine sont tranchés (voir « À trancher » dans DECISIONS.md)
-- [ ] Attribution LifeWiki visible quelque part dans l'interface
-- [ ] Une page « à propos » courte : ce qu'est le projet, qui le fait
-- [ ] Mesure d'audience en place, sinon le test de marché ne mesure rien —
-      PostHog région UE, sans cookie, donc sans bandeau
+- [x] Attribution LifeWiki visible dans l'interface — en bas à droite de la
+      scène, et détaillée sur `/a-propos`
+- [x] Page `/a-propos` : les règles, le projet, les crédits, la vie privée
+- [x] Mesure d'audience — sans cookie ni stockage, `Do Not Track` respecté,
+      silencieuse tant que la clé n'est pas configurée
+- [ ] **Renseigner `NEXT_PUBLIC_POSTHOG_KEY` sur Vercel.** Tant qu'elle est
+      vide, les huit semaines ne mesurent rien.
 
 Diffusion, dans cet ordre :
 

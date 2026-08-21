@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { GridRenderer, Viewport, type RenderStyle } from '@zp/render';
 import { SimulationClient, type SimCommand } from '@zp/worker';
 
+import { startVisit, track, trackOnce } from '../lib/analytics';
 import PatternPanel from './PatternPanel';
 import RlePanel from './RlePanel';
 
@@ -139,12 +140,19 @@ export default function Lab() {
       client.send({ type: 'randomise', density: 0.3, seed: (Math.random() * 2 ** 31) | 0 });
       setReady(true);
       raf = requestAnimationFrame(loop);
+
+      // C'est aussi ainsi qu'on saura si les en-têtes COOP/COEP tiennent en
+      // production, sur de vrais navigateurs, plutôt qu'en regardant un badge.
+      track({ name: 'lab_loaded', shared: client.usesSharedMemory, worldSize: 512 });
     });
+
+    const endVisit = startVisit();
 
     return () => {
       disposed = true;
       cancelAnimationFrame(raf);
       observer.disconnect();
+      endVisit();
       off();
       client.terminate();
       clientRef.current = null;
@@ -215,8 +223,11 @@ export default function Lab() {
         stampAt(point, armedPattern.rle);
         setArmed(null);
         setAnnouncement(`${armedPattern.name} déposé.`);
+        track({ name: 'pattern_placed', pattern: armedPattern.id });
         return;
       }
+
+      trackOnce({ name: 'drawing_started' });
 
       // Un point d'histoire au début du geste : tout le trait s'annulera d'un
       // seul coup, pas cellule par cellule.
@@ -265,6 +276,7 @@ export default function Lab() {
       if (!rle) return;
       stampAt(localPoint(event), rle);
       setAnnouncement('Motif déposé.');
+      track({ name: 'pattern_placed', pattern: 'glisser-déposer' });
     };
 
     const onContextMenu = (event: Event) => event.preventDefault();
@@ -295,8 +307,12 @@ export default function Lab() {
   const toggleRun = useCallback(() => {
     const client = clientRef.current;
     if (!client) return;
-    if (running) client.stop();
-    else client.start(SPEEDS[speedIndex]!);
+    if (running) {
+      client.stop();
+    } else {
+      client.start(SPEEDS[speedIndex]!);
+      trackOnce({ name: 'simulation_started' });
+    }
   }, [running, speedIndex]);
 
   const cycleSpeed = useCallback(() => {
@@ -326,6 +342,7 @@ export default function Lab() {
               nextTopology === 'torus' ? 'recollés' : 'morts'
             }.`,
           );
+          track({ name: 'grid_resized', worldSize: nextSize, topology: nextTopology });
         });
     },
     [announce],
@@ -341,6 +358,7 @@ export default function Lab() {
         y: Math.round(viewport.centerY),
       });
       announce('Motif importé au centre de la vue.');
+      track({ name: 'rle_imported' });
     },
     [send, announce],
   );
@@ -601,6 +619,12 @@ export default function Lab() {
               ? `${armed.name} — clique la grille pour le déposer, Échap pour annuler`
               : 'Glisser pour dessiner · Maj pour effacer · Molette pour zoomer · Clic droit pour déplacer · Espace, →, F, C, R'}
           </div>
+          <div className="stage-links">
+            <a href="https://conwaylife.com/wiki/" rel="noreferrer noopener" target="_blank">
+              Motifs : LifeWiki, CC BY-SA
+            </a>
+            <a href="/a-propos">À propos</a>
+          </div>
         </div>
 
         {panel === 'patterns' ? (
@@ -617,7 +641,10 @@ export default function Lab() {
         {panel === 'rle' ? (
           <RlePanel
             exported={exported}
-            onRequestExport={() => send({ type: 'snapshot' })}
+            onRequestExport={() => {
+              send({ type: 'snapshot' });
+              track({ name: 'rle_exported' });
+            }}
             onImport={importRle}
             onClose={() => setPanel(null)}
           />
