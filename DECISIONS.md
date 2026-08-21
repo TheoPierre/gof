@@ -383,6 +383,38 @@ absolues des aperçus de lien en dépendent.
 
 ---
 
+### D-022 — On reste sur le domaine Vercel pour le test de marché
+**2026-08-21**
+
+Pas d'achat de domaine tant que le test n'a rien démontré. `gof-lab.vercel.app`
+suffit : il ne change rien à ce qu'on mesure, et le nom *Zero Player* est déjà
+partout dans le produit.
+
+Conséquence à ne pas oublier le jour où un domaine arrive : poser
+`NEXT_PUBLIC_SITE_URL`, dont dépendent les URL absolues des aperçus de lien.
+
+---
+
+### D-023 — La mise en page étroite recouvre au lieu de comprimer
+**2026-08-21**
+
+Mesuré sur 375×812 avant correction : le panneau de 260 px laissait **87 px de
+grille jouable**, et la barre d'outils se repliait sur quatre lignes, soit
+151 px de haut. Inutilisable.
+
+Deux règles, sous 860 px :
+
+- **Les commandes tiennent sur une ligne qui défile** plutôt que de se replier.
+  Une barre qui grandit vole la place de ce qu'elle sert à piloter.
+- **Le panneau recouvre la scène** au lieu de se placer à côté, et il part
+  fermé — sinon le premier écran ne montre rien de jouable.
+
+Après : grille de 363 px de large, barre de 79 px. Ça compte parce qu'une part
+importante du trafic d'un Show HN arrive depuis un téléphone, et que la
+première impression ne se rejoue pas.
+
+---
+
 ## À trancher
 - **Licences de contenu.** Le LifeWiki est en CC BY-SA : attribution
   obligatoire, et la clause de partage à l'identique demande un examen pour une

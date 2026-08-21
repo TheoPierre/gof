@@ -57,16 +57,27 @@ button {
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 10px;
   padding: 8px 10px;
   background: var(--zp-surface);
   border: 1px solid var(--zp-line);
   border-radius: 6px;
 }
 
-.spacer {
-  flex: 1;
+.toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.toolbar-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  flex: none;
 }
 
 .btn {
@@ -524,9 +535,76 @@ button {
   border: 0;
 }
 
-@media (max-width: 900px) {
+/* ─────────────────────────── Écrans étroits ───────────────────────────
+ *
+ * Sur un téléphone, un panneau de 260 px posé à côté de la scène ne laissait
+ * que 87 px de grille jouable, et la barre d'outils se repliait sur quatre
+ * lignes. Deux corrections : les commandes tiennent sur une seule ligne qui
+ * défile, et le panneau recouvre la scène au lieu de la comprimer.
+ */
+@media (max-width: 860px) {
+  .lab {
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 7px;
+    padding: 7px 8px;
+  }
+
+  .toolbar-controls {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    /* Le défilement tactile ne doit pas emporter la page entière. */
+    overscroll-behavior-x: contain;
+    padding-bottom: 1px;
+  }
+
+  .toolbar-controls::-webkit-scrollbar {
+    display: none;
+  }
+
+  .toolbar-controls > * {
+    flex: none;
+  }
+
+  .toolbar-status {
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+  .readout {
+    gap: 10px;
+    font-size: 11px;
+  }
+
+  .btn {
+    padding: 8px 10px;
+  }
+
+  .workspace {
+    position: relative;
+  }
+
+  /* Le panneau devient une feuille par-dessus la grille. */
   .panel {
-    width: 260px;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    z-index: 5;
+    box-shadow: 0 0 0 100vmax rgba(6, 6, 10, 0.5);
+  }
+
+  .pattern-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .hint {
+    display: none;
   }
 }
 

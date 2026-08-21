@@ -38,7 +38,12 @@ export default function Lab() {
   const [stats, setStats] = useState({ generation: 0, population: 0, scale: 4 });
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
-  const [panel, setPanel] = useState<Panel>('patterns');
+  // Sur un écran étroit le panneau recouvre la grille : il part fermé, sinon
+  // le premier écran ne montre rien de jouable. Le composant n'est jamais
+  // rendu côté serveur (voir LabClient), `matchMedia` est donc sûr ici.
+  const [panel, setPanel] = useState<Panel>(() =>
+    globalThis.matchMedia?.('(max-width: 860px)').matches ? null : 'patterns',
+  );
   const [armed, setArmed] = useState<Armed>(null);
   const [exported, setExported] = useState<string | null>(null);
   const [size, setSize] = useState(512);
@@ -464,6 +469,7 @@ export default function Lab() {
   return (
     <div className="lab">
       <div className="toolbar" role="toolbar" aria-label="Contrôles de la simulation">
+        <div className="toolbar-controls">
         <button className="btn" onClick={toggleRun} disabled={!ready}>
           {running ? '⏸ Pause' : '▶ Lancer'}
         </button>
@@ -569,8 +575,6 @@ export default function Lab() {
           <option value="bounded">Bords morts</option>
         </select>
 
-        <div className="spacer" />
-
         <button
           className="btn"
           aria-pressed={panel === 'patterns'}
@@ -585,7 +589,9 @@ export default function Lab() {
         >
           RLE
         </button>
+        </div>
 
+        <div className="toolbar-status">
         <div className="readout" aria-live="off">
           <span>
             Génération <b>{stats.generation.toLocaleString('fr-FR')}</b>
@@ -604,6 +610,7 @@ export default function Lab() {
         >
           {shared ? 'SAB' : 'postMessage'}
         </span>
+        </div>
       </div>
 
       <div className="workspace">

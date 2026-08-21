@@ -87,7 +87,10 @@ Technique :
 - [ ] Le badge affiche `SAB` sur le domaine de production
 - [ ] Les en-têtes COOP/COEP sont bien présents (`curl -D -`)
 - [ ] `/manifest.webmanifest` et `/icon.svg` répondent en 200
-- [ ] Le Labo se charge sur un mobile réel — la barre d'outils passe-t-elle ?
+- [x] Mise en page mobile vérifiée en 375×812 : grille pleine largeur,
+      commandes sur une ligne qui défile, panneau en recouvrement et fermé au
+      départ
+- [ ] Confirmer sur un téléphone réel — le tactile, pas seulement la taille
 - [ ] Un tour au clavier seul : Tab jusqu'à la grille, flèches, Entrée
 - [ ] Vérifier sur Safari : `SharedArrayBuffer` et les Web Workers de type
       module y sont plus capricieux qu'ailleurs
