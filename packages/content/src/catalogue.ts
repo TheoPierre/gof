@@ -25,6 +25,12 @@ export interface Localised {
 
 export interface CataloguePattern {
   id: string;
+  /**
+   * Le nom canonique de la communauté, identique dans les deux langues. Ce
+   * sont des noms propres : on cherche « Gosper glider gun », pas sa
+   * traduction, et c'est le titre de la page LifeWiki correspondante. Seule
+   * la description est traduite.
+   */
   name: string;
   category: PatternCategory;
   rle: string;
@@ -378,8 +384,7 @@ export const CATALOGUE: CataloguePattern[] = [
   // ───────────────────────── Croissance infinie ─────────────────────────
   {
     id: 'gosper-gun',
-    name: 'Canon à planeurs de Gosper',
-    wiki: 'Gosper_glider_gun',
+    name: 'Gosper glider gun',
     category: 'croissance',
     rle: '24bo$22bobo$12b2o6b2o12b2o$11bo3bo4b2o12b2o$2o8bo5bo3b2o$2o8bo3bob2o4bobo$10bo5bo7bo$11bo3bo$12b2o!',
     note: {
@@ -390,7 +395,10 @@ export const CATALOGUE: CataloguePattern[] = [
   },
   {
     id: 'infinite-growth-5x5',
-    name: 'Croissance infinie 5×5',
+    name: 'Infinite growth 5×5',
+    // Ce motif n'a pas de page à son nom : on renvoie vers la notion, qui
+    // vaut mieux qu'un lien mort.
+    wiki: 'Infinite_growth',
     category: 'croissance',
     rle: '3obo$o$3b2o$b2obo$obobo!',
     note: {

@@ -115,7 +115,7 @@ export default async function PatternPage({
         <pre className="rle">{pattern.rle}</pre>
 
         <p className="cta">
-          <Link className="btn" href={`/${locale}?motif=${pattern.id}`}>
+          <Link className="btn" href={`/${locale}/lab?motif=${pattern.id}`}>
             {t.openInLab}
           </Link>
         </p>
@@ -144,7 +144,7 @@ export default async function PatternPage({
 
         <p className="back">
           <Link href={`/${locale}/patterns`}>{t.allPatterns}</Link> ·{' '}
-          <Link href={`/${locale}`}>{t.lab}</Link>
+          <Link href={`/${locale}/lab`}>{t.lab}</Link>
         </p>
       </article>
     </main>

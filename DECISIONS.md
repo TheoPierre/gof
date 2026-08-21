@@ -516,6 +516,38 @@ dossiers de sortie (D-017).
 
 ---
 
+### D-028 — Une page d'accueil dont le fond est le moteur
+**2026-08-21**
+
+On tombait directement dans le Labo, sans savoir ce que c'était ni pourquoi.
+Le Labo déménage sur `/lab` et l'accueil devient la porte d'entrée.
+
+**Le fond de l'accueil est la vraie simulation**, pas une capture ni une
+vidéo : un champ de planeurs qui dérivent sur un tore. On comprend le produit
+avant d'avoir lu une ligne, et on garde le bénéfice du « ça bouge » sans
+perdre l'orientation. Le moteur ne coûte rien à embarquer — zéro dépendance.
+
+Des planeurs plutôt qu'une soupe : une soupe est du bruit, et on veut du
+dépouillement. Le fond se resème quand les collisions ont laissé trop de
+débris, sinon il s'encrasse.
+
+**Pas de police importée.** Le monospace est l'identité du sujet, et
+`require-corp` complique les polices tierces, qui ne servent pas toutes
+`Cross-Origin-Resource-Policy`. Du mono en très grand, très espacé, l'ambre
+réservé aux accents.
+
+### D-029 — Les noms de motifs ne se traduisent pas
+**2026-08-21**
+
+« Canon à planeurs de Gosper » s'affichait sur le site anglais. Ce sont des
+noms propres de la communauté : on cherche « Gosper glider gun », c'est le
+titre de la page LifeWiki, et c'est ce que dira quiconque parle du sujet.
+
+Le nom est donc identique dans les deux langues ; seule la description est
+traduite.
+
+---
+
 ## À trancher
 - **Licences de contenu.** Le LifeWiki est en CC BY-SA : attribution
   obligatoire, et la clause de partage à l'identique demande un examen pour une

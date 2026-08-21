@@ -801,3 +801,324 @@ button {
   outline-offset: 2px;
   border-radius: 2px;
 }
+
+/* ═══════════════════════════ Page d'accueil ═══════════════════════════
+ *
+ * Dépouillé : beaucoup de vide, du monospace en très grand, et l'ambre
+ * réservé aux accents. Pas de police importée — c'est l'identité du sujet,
+ * et `require-corp` complique les polices tierces, qui ne servent pas toutes
+ * les bons en-têtes.
+ */
+
+.home {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─────────────────────────── En-tête ─────────────────────────── */
+
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 88dvh;
+  padding: 72px 24px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--zp-line);
+}
+
+/* La simulation, en fond. Assez présente pour se lire, assez discrète pour
+   ne pas disputer la lecture du titre. */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.16;
+  pointer-events: none;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 70% 60% at 30% 50%,
+    var(--zp-void) 0%,
+    rgba(6, 6, 10, 0.82) 45%,
+    rgba(6, 6, 10, 0.35) 100%
+  );
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 62ch;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.home h1 {
+  margin: 0 0 26px;
+  font-size: clamp(2.3rem, 6.2vw, 4.4rem);
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  color: var(--zp-text);
+}
+
+.hero-lede {
+  margin: 0 0 40px;
+  max-width: 54ch;
+  font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+  line-height: 1.65;
+  color: var(--zp-muted);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+}
+
+.btn-lg {
+  padding: 13px 22px;
+  font-size: 13px;
+}
+
+.btn-primary {
+  background: var(--zp-amber);
+  border-color: var(--zp-amber);
+  color: var(--zp-void);
+}
+
+.btn-primary:hover {
+  background: #ffb066;
+  border-color: #ffb066;
+}
+
+a.btn {
+  text-decoration: none;
+}
+
+/* ─────────────────────────── Bandes ─────────────────────────── */
+
+.band {
+  padding: 104px 24px;
+  border-bottom: 1px solid var(--zp-line);
+}
+
+.band-alt {
+  background: var(--zp-surface);
+}
+
+.band-inner {
+  max-width: 62ch;
+  margin: 0 auto;
+}
+
+.band h2 {
+  margin: 0 0 14px;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--zp-amber);
+  text-wrap: balance;
+}
+
+.band-lede {
+  margin: 0 0 34px;
+  color: var(--zp-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.band-note {
+  margin: 30px 0 0;
+  color: var(--zp-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* Les trois règles, numérotées : ici l'ordre veut dire quelque chose. */
+.rules {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rules li {
+  display: grid;
+  grid-template-columns: 46px 1fr;
+  gap: 14px;
+  align-items: baseline;
+  padding: 18px 0;
+  border-top: 1px solid var(--zp-line);
+  color: var(--zp-text);
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+
+.rules li:last-child {
+  border-bottom: 1px solid var(--zp-line);
+}
+
+.rule-n {
+  color: var(--zp-amber-dim);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  font-variant-numeric: tabular-nums;
+}
+
+.features {
+  list-style: none;
+  margin: 0 0 34px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.features li {
+  position: relative;
+  padding-left: 22px;
+  color: var(--zp-text);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Une cellule vivante en guise de puce. */
+.features li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 8px;
+  height: 8px;
+  background: var(--zp-amber);
+}
+
+/* ─────────────────────────── Vitrine ─────────────────────────── */
+
+.showcase {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 26px;
+}
+
+.showcase-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: var(--zp-raised);
+  border: 1px solid var(--zp-line);
+  border-radius: 6px;
+  text-decoration: none;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.showcase-card:hover {
+  border-color: var(--zp-edge);
+  background: var(--zp-amber-faint);
+}
+
+.showcase-card:focus-visible {
+  outline: 2px solid var(--zp-amber);
+  outline-offset: 2px;
+}
+
+.showcase-card canvas {
+  display: block;
+  width: 100%;
+  height: 84px;
+  background: var(--zp-field);
+  border-radius: 4px;
+}
+
+.showcase-name {
+  color: var(--zp-amber);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.showcase-cat {
+  color: var(--zp-muted);
+  font-size: 11px;
+}
+
+.band-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin: 0 0 30px;
+  color: var(--zp-muted);
+  font-size: 12px;
+}
+
+.band-counts b {
+  color: var(--zp-amber);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─────────────────────────── Pied ─────────────────────────── */
+
+.home-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  padding: 40px 24px 56px;
+  max-width: 62ch;
+  margin: 0 auto;
+  width: 100%;
+  font-size: 12px;
+}
+
+.home-footer a {
+  color: var(--zp-muted);
+  text-decoration: none;
+}
+
+.home-footer a:hover {
+  color: var(--zp-amber);
+  text-decoration: underline;
+}
+
+.home-footer a:focus-visible {
+  outline: 2px solid var(--zp-amber);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (max-width: 860px) {
+  .hero {
+    min-height: 78dvh;
+    padding: 56px 18px;
+  }
+
+  .band {
+    padding: 64px 18px;
+  }
+
+  .showcase {
+    grid-template-columns: 1fr;
+  }
+
+  .rules li {
+    grid-template-columns: 34px 1fr;
+    gap: 10px;
+  }
+
+  .home-footer {
+    padding: 32px 18px 48px;
+  }
+}

@@ -92,7 +92,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         </p>
 
         <p className="back">
-          <Link href={`/${locale}`}>{t.back}</Link>
+          <Link href={`/${locale}/lab`}>{t.back}</Link>
         </p>
       </article>
     </main>

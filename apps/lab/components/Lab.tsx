@@ -655,6 +655,7 @@ export default function Lab({ locale }: { locale: Locale }) {
             <a href="https://conwaylife.com/wiki/" rel="noreferrer noopener" target="_blank">
               {d.attribution}
             </a>
+            <a href={`/${locale}`}>Zero Player</a>
             <a href={`/${locale}/patterns`}>{d.allPatterns}</a>
             <a href={`/${locale}/about`}>{d.about}</a>
           </div>

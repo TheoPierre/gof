@@ -66,7 +66,7 @@ export default async function PatternsPage({
         })}
 
         <p className="back">
-          <Link href={`/${locale}`}>{dict.pattern.lab}</Link> ·{' '}
+          <Link href={`/${locale}/lab`}>{dict.pattern.lab}</Link> ·{' '}
           <Link href={`/${locale}/about`}>{dict.lab.about}</Link>
         </p>
       </article>

@@ -86,6 +86,25 @@ export interface Dict {
     restart: string;
   };
   patterns: { title: string; lede: string };
+  home: {
+    eyebrow: string;
+    title: string;
+    lede: string;
+    openLab: string;
+    browsePatterns: string;
+    rulesTitle: string;
+    rulesLede: string;
+    labTitle: string;
+    labLede: string;
+    labPoint1: string;
+    labPoint2: string;
+    labPoint3: string;
+    catalogueTitle: string;
+    catalogueLede: string;
+    catalogueLink: string;
+    footerCode: string;
+    footerCredit: string;
+  };
   pattern: {
     breadcrumb: string;
     measured: string;
@@ -209,6 +228,26 @@ const en: Dict = {
   player: {
     label: (name) => `Simulation of ${name}`,
     restart: '↺ Restart',
+  },
+  home: {
+    eyebrow: 'Zero Player',
+    title: 'Three rules. Fifty years of discoveries.',
+    lede: "Conway's Game of Life has no goal and no opponent. You place cells, and you watch what comes out. Some of what comes out can compute anything.",
+    openLab: 'Open the Lab',
+    browsePatterns: 'Browse the patterns',
+    rulesTitle: 'The whole game, in three lines',
+    rulesLede: 'Every cell looks at its eight neighbours, and that is the entire rulebook.',
+    labTitle: 'Draw, drop, watch',
+    labLede: 'A sandbox that does not get in the way.',
+    labPoint1: 'A grid up to 2048 cells across, with pan and zoom.',
+    labPoint2: 'Import and export RLE — the format the LifeWiki and Golly speak.',
+    labPoint3: 'The simulation runs off the main thread, so the interface never stutters.',
+    catalogueTitle: 'Fifty years of findings',
+    catalogueLede:
+      'Still lifes, oscillators, spaceships, methuselahs. Each has its page, its running simulation, and figures measured by the engine rather than copied.',
+    catalogueLink: 'See all patterns',
+    footerCode: 'Source code',
+    footerCredit: 'Patterns from the LifeWiki, CC BY-SA',
   },
   patterns: {
     title: 'The patterns',
@@ -357,6 +396,26 @@ const fr: Dict = {
   player: {
     label: (name) => `Simulation de ${name}`,
     restart: '↺ Reprendre',
+  },
+  home: {
+    eyebrow: 'Zero Player',
+    title: 'Trois règles. Cinquante ans de découvertes.',
+    lede: 'Le Jeu de la Vie de Conway n’a ni but ni adversaire. On pose des cellules, on regarde ce qui en sort. Et ce qui en sort peut calculer n’importe quoi.',
+    openLab: 'Ouvrir le Labo',
+    browsePatterns: 'Parcourir les motifs',
+    rulesTitle: 'Le jeu entier, en trois lignes',
+    rulesLede: 'Chaque cellule regarde ses huit voisines, et c’est tout le règlement.',
+    labTitle: 'Dessine, dépose, regarde',
+    labLede: 'Un bac à sable qui ne se met pas en travers.',
+    labPoint1: 'Une grille jusqu’à 2048 cellules de côté, avec zoom et panoramique.',
+    labPoint2: 'Import et export RLE — le format que parlent le LifeWiki et Golly.',
+    labPoint3: 'La simulation tourne hors du thread principal : l’interface ne bronche jamais.',
+    catalogueTitle: 'Cinquante ans de trouvailles',
+    catalogueLede:
+      'Natures mortes, oscillateurs, vaisseaux, mathusalems. Chacun a sa page, sa simulation qui tourne, et des chiffres mesurés par le moteur plutôt que recopiés.',
+    catalogueLink: 'Voir tous les motifs',
+    footerCode: 'Code source',
+    footerCredit: 'Motifs issus du LifeWiki, CC BY-SA',
   },
   patterns: {
     title: 'Les motifs',
