@@ -2,6 +2,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { notFound } from 'next/navigation';
 import type { Metadata, Viewport } from 'next';
 
+import ServiceWorker from '../../components/ServiceWorker';
 import { DEFAULT_LOCALE, LOCALES, getDict, isLocale, type Locale } from '../../lib/i18n';
 import '../globals.css';
 
@@ -77,6 +78,7 @@ export default async function LocaleLayout({
           Les questions de comportement restent du ressort de lib/analytics.ts.
         */}
         <Analytics />
+        <ServiceWorker />
       </body>
     </html>
   );

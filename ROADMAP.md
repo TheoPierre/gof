@@ -117,13 +117,12 @@ tient largement dans le budget d'une image de 16,7 ms.
       `prefers-reduced-motion` respecté.
 - [x] **Manifeste PWA** — installable, icône, thème.
 
-Reporté, avec sa raison :
+- [x] **Service worker** — réseau d'abord pour les documents, cache d'abord
+      pour les fichiers hachés. L'interaction avec COEP a été éprouvée plutôt
+      que supposée : la réponse rejouée conserve les en-têtes d'isolation, donc
+      la mémoire partagée survit au cache. Voir D-027.
 
-- [ ] **Service worker hors-ligne.** Le manifeste rend l'application
-      installable, mais rien n'est mis en cache. Un service worker mal cadré
-      sert des versions périmées, et son interaction avec COEP demande d'être
-      éprouvée — à faire quand il y aura un vrai processus de publication,
-      c'est-à-dire en même temps que la mise en ligne.
+**P2 est entièrement close.**
 
 ### Prêt pour la mise en ligne
 

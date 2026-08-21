@@ -487,6 +487,35 @@ Deux réserves respectées :
 
 ---
 
+### D-027 — Service worker : réseau d'abord, en-têtes préservés
+**2026-08-21**
+
+Reporté depuis P2 pour deux raisons, qui ont fini par dicter sa conception.
+
+**Un cache périmé sert une version morte.** D'où réseau d'abord pour les
+documents : en ligne on voit toujours la dernière version, hors ligne la
+dernière connue, et un mauvais déploiement se répare seul au prochain
+chargement en ligne. Seuls les fichiers de `/_next/static/`, dont le nom porte
+un hachage, sont servis depuis le cache en priorité — ils ne peuvent pas
+périmer.
+
+**COEP.** C'était le vrai danger : une page n'est isolée d'origine que si sa
+réponse porte COOP et COEP. Un service worker qui fabrique une réponse, ou qui
+rejoue une réponse opaque, ferait disparaître `SharedArrayBuffer` et ferait
+retomber tout le rendu sur `postMessage` — en silence.
+
+On ne fabrique donc jamais de réponse : on rejoue celle du réseau telle quelle.
+Vérifié en production locale, une fois le worker aux commandes :
+`crossOriginIsolated` reste vrai, le badge affiche `SAB`, et la réponse en cache
+porte bien `cross-origin-opener-policy: same-origin` et
+`cross-origin-embedder-policy: require-corp`.
+
+Enregistrement en production seulement : en développement il servirait des
+morceaux périmés à chaque rechargement, la panne qu'on a déjà eue avec les
+dossiers de sortie (D-017).
+
+---
+
 ## À trancher
 - **Licences de contenu.** Le LifeWiki est en CC BY-SA : attribution
   obligatoire, et la clause de partage à l'identique demande un examen pour une
