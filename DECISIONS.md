@@ -469,6 +469,24 @@ pas celle du produit.
 
 ---
 
+### D-026 — La simulation démarre toute seule
+**2026-08-21**
+
+Un visiteur arrivait sur un champ de bruit statique et devait deviner qu'il
+fallait appuyer quelque part. Pour un produit dont toute la promesse est de
+regarder ce qui bouge, c'était le mauvais premier écran — et sur un Show HN on
+n'a qu'un coup d'œil.
+
+Deux réserves respectées :
+
+- **** coupe le démarrage automatique. C'est une
+  animation permanente, exactement ce que ce réglage vise.
+- **Ce démarrage n'est pas compté** comme un  : l'événement
+  ne doit mesurer que les lancements voulus, sinon il vaut 100 % et ne dit plus
+  rien.
+
+---
+
 ## À trancher
 - **Licences de contenu.** Le LifeWiki est en CC BY-SA : attribution
   obligatoire, et la clause de partage à l'identique demande un examen pour une

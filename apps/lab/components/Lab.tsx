@@ -12,6 +12,9 @@ import PatternPanel from './PatternPanel';
 import RlePanel from './RlePanel';
 
 const SPEEDS = [5, 15, 30, 60, 120];
+/** 30 générations par seconde : assez vif pour donner du mouvement, assez lent
+ *  pour qu'on suive ce qui se passe. */
+const DEFAULT_SPEED = 2;
 const SIZES = [256, 512, 1024, 2048];
 
 type Tool = 'draw' | 'pan';
@@ -39,7 +42,7 @@ export default function Lab({ locale }: { locale: Locale }) {
   const [ready, setReady] = useState(false);
   const [running, setRunning] = useState(false);
   const [tool, setTool] = useState<Tool>('draw');
-  const [speedIndex, setSpeedIndex] = useState(2);
+  const [speedIndex, setSpeedIndex] = useState(DEFAULT_SPEED);
   const [shared, setShared] = useState(false);
   const [stats, setStats] = useState({ generation: 0, population: 0, scale: 4 });
   const [canUndo, setCanUndo] = useState(false);
@@ -162,6 +165,17 @@ export default function Lab({ locale }: { locale: Locale }) {
       }
       setReady(true);
       raf = requestAnimationFrame(loop);
+
+      // La simulation part toute seule. Ce produit se vend en bougeant : un
+      // visiteur qui tombe sur un champ de bruit statique et doit deviner
+      // qu'il faut appuyer quelque part est un visiteur perdu.
+      //
+      // Sauf si le système demande à ce que ça ne bouge pas — c'est une
+      // animation permanente, exactement ce que prefers-reduced-motion vise.
+      // Et on ne compte pas ce démarrage comme un « simulation_started » :
+      // l'événement ne mesure que les lancements voulus.
+      const calme = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      if (!calme) client.start(SPEEDS[DEFAULT_SPEED]!);
 
       // C'est aussi ainsi qu'on saura si les en-têtes COOP/COEP tiennent en
       // production, sur de vrais navigateurs, plutôt qu'en regardant un badge.
