@@ -312,6 +312,29 @@ sont du texte et une simulation optionnelle, pas une application.
 
 ---
 
+### D-019 — Les types sont ancrés sur le dépôt
+**2026-08-21**
+
+`typeRoots: ["./node_modules/@types"]` dans `tsconfig.base.json`.
+
+TypeScript remonte les dossiers parents à la recherche de `node_modules/@types`.
+Un paquet oublié *au-dessus* du dépôt — ici un `node_modules` traînant dans
+`Downloads/` — suffisait à fournir `@types/node` sans qu'il soit déclaré nulle
+part. Le typecheck passait en local et échouait en CI, où aucun parent
+n'existe.
+
+L'effet en cascade valait le détour : sans `@types/node`, `assert.ok` perd sa
+signature `asserts value`, donc ne narrow plus, donc une trentaine d'erreurs
+« possibly undefined » apparaissaient dans les tests — des symptômes qui ne
+désignaient pas leur cause.
+
+La dépendance est maintenant déclarée *et* la recherche ancrée. Vérification
+du correctif : retirer `@types/node` produit 34 erreurs, le remettre les fait
+disparaître. Un typecheck qui ne dépend plus de l'état du disque autour du
+dépôt.
+
+---
+
 ## À trancher
 
 - **Le nom et le domaine.** *Zero Player* est retenu à titre provisoire.

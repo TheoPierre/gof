@@ -132,7 +132,10 @@ Reporté, avec sa raison :
       sur `main`.
 - [x] [DEPLOY.md](DEPLOY.md) — procédure, liste de contrôle avant le Show HN,
       et ce que le test de marché doit mesurer.
-- [ ] **Le déploiement lui-même** : il demande tes comptes, c'est à toi.
+- [x] Dépôt publié sur [github.com/TheoPierre/gof](https://github.com/TheoPierre/gof),
+      CI verte — le vecteur Acorn compris.
+- [ ] **Brancher Vercel** : racine `apps/lab`, Node 24. Puis vérifier le badge
+      `SAB` sur le domaine de production.
 
 ### Vérifié dans le navigateur (2026-08-21)
 
