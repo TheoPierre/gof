@@ -1,0 +1,23 @@
+{
+  "name": "zero-player",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Zero Player — le Jeu de la Vie de Conway, en jeu web.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test": "node --test \"packages/*/test/*.test.ts\"",
+    "test:slow": "node --test \"packages/*/test/*.slow.ts\"",
+    "bench": "node packages/engine/test/bench.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

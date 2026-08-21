@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Zero Player">
+  <rect width="512" height="512" rx="96" fill="#06060a"/>
+  <g fill="#ff9b3d">
+    <!-- Un planeur : trois cellules par côté, la forme emblématique du sujet. -->
+    <rect x="176" y="112" width="96" height="96" rx="8"/>
+    <rect x="272" y="208" width="96" height="96" rx="8"/>
+    <rect x="80"  y="304" width="96" height="96" rx="8"/>
+    <rect x="176" y="304" width="96" height="96" rx="8"/>
+    <rect x="272" y="304" width="96" height="96" rx="8"/>
+  </g>
+</svg>

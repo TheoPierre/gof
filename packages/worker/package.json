@@ -1,0 +1,16 @@
+{
+  "name": "@zp/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Exécution de la simulation hors du thread principal : protocole, cœur testable, adaptateurs navigateur.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./worker": "./src/worker.ts"
+  },
+  "dependencies": {
+    "@zp/codecs": "0.1.0",
+    "@zp/engine": "0.1.0"
+  },
+  "sideEffects": false
+}

@@ -1,0 +1,11 @@
+{
+  "name": "@zp/codecs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Lecture et écriture des formats de motifs de l'écosystème : RLE, .cells.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "sideEffects": false
+}

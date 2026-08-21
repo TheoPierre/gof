@@ -1,0 +1,11 @@
+{
+  "name": "@zp/render",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Caméra et rendu canvas d'une grille empaquetée en bits. Indépendant de tout framework.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "sideEffects": false
+}

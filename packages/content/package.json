@@ -1,0 +1,11 @@
+{
+  "name": "@zp/content",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Catalogue de motifs nommés, leçons et puzzles. Données seules.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "sideEffects": false
+}

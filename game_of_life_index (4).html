@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Jeu de la Vie — Retro Terminal (models + creator)</title>
+  <style>
+    /* Cool-Retro-Term orange style */
+    :root{
+      --bg:#020202;
+      --screen:#030303;
+      --accent:#ff9b3d; /* terminal orange */
+      --muted:#7a7a74;
+    }
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#050505,#0a0a08);font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace;color:var(--accent)}
+
+    .shell{display:flex;gap:12px;padding:14px;height:100%;box-sizing:border-box}
+    .main{flex:1;display:flex;flex-direction:column;gap:12px;width:100%}
+
+    .ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:linear-gradient(180deg, rgba(255,155,61,0.03), rgba(255,155,61,0.02));border:1px solid rgba(255,155,61,0.08);padding:10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
+    .btn{background:transparent;border:1px solid rgba(255,155,61,0.14);color:var(--accent);padding:8px 12px;border-radius:6px;cursor:pointer;box-shadow:inset 0 -6px 12px rgba(0,0,0,0.25);font-weight:700;letter-spacing:0.6px;font-size:13px}
+    .btn.primary{background:linear-gradient(180deg, rgba(255,155,61,0.08), rgba(255,155,61,0.02));border-color:rgba(255,155,61,0.22)}
+    .btn.icon{width:34px;height:34px;padding:0;display:inline-grid;place-items:center}
+    .btn:active{transform:translateY(1px)}
+
+    .stage{position:relative;flex:1;display:flex;align-items:center;justify-content:center;min-height:320px}
+    .screen{position:relative;width:100%;max-width:1600px;height:calc(100vh - 180px);background:var(--screen);border-radius:10px;overflow:hidden;border:1px solid rgba(255,155,61,0.06);box-shadow:0 20px 60px rgba(0,0,0,0.8), inset 0 0 120px rgba(255,155,61,0.02);display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box}
+    #game{background:transparent;display:block;width:100%;height:100%;max-height:100%;touch-action:none}
+
+    .section-title{font-size:13px;margin:8px 0;color:var(--muted);font-weight:700}
+    .small{font-size:12px;color:var(--muted)}
+
+    .modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(980px,96vw);max-height:84vh;padding:0;border-radius:8px;background:#050504;border:1px solid rgba(255,155,61,0.12);box-shadow:0 30px 80px rgba(0,0,0,0.85);display:flex;flex-direction:column}
+    .modal .modal-header{cursor:grab;padding:10px;border-bottom:1px solid rgba(255,155,61,0.04);display:flex;align-items:center;justify-content:space-between}
+    .modal .modal-title{color:var(--accent);font-weight:800;padding-left:8px}
+    .modal .modal-body{padding:12px;overflow:auto;max-height:calc(84vh - 60px)}
+    .modal .close{border:0;background:transparent;color:var(--muted);cursor:pointer}
+
+    /* custom retro scrollbar for modal body */
+    .modal .modal-body::-webkit-scrollbar{width:8px;height:8px}
+    .modal .modal-body::-webkit-scrollbar-track{background:transparent}
+    .modal .modal-body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--accent),var(--accent));border-radius:6px;border:2px solid rgba(0,0,0,0.35)}
+    .modal .modal-body{scrollbar-width:thin;scrollbar-color: var(--accent) transparent}
+
+    .models-grid{display:block;gap:10px;padding:10px}
+    .models-group{margin-bottom:10px}
+    .model-card{background:#060606;border:1px solid rgba(255,155,61,0.06);padding:8px;border-radius:6px;cursor:grab;display:flex;flex-direction:column;align-items:center;gap:8px}
+    .model-canvas{width:120px;height:80px;background:#020202;border-radius:4px;border:1px solid rgba(255,155,61,0.03)}
+    .model-name{font-weight:700;color:var(--accent);font-size:13px}
+    .model-type{font-size:12px;color:var(--muted)}
+
+    .creator-grid{display:flex;gap:12px;align-items:flex-start}
+    .editor-canvas{background:#020202;border:1px solid rgba(255,155,61,0.06);border-radius:6px}
+
+    .footer{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;font-size:13px;color:var(--accent)}
+    .byline{color:var(--accent);font-weight:700;margin-left:8px}
+
+    @media(max-width:900px){.screen{height:calc(100vh - 140px)}}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <main class="main">
+      <div class="ctrl" role="toolbar" aria-label="Contrôles du Jeu de la Vie">
+        <button class="btn primary" id="start">▶ START</button>
+        <button class="btn" id="stop">⏸ STOP</button>
+        <button class="btn" id="step">➡ STEP</button>
+        <button class="btn" id="clear">❌ CLEAR</button>
+        <button class="btn" id="random">🎲 RANDOM</button>
+        <button class="btn" id="modelsBtn">▦ MODELS</button>
+        <button class="btn" id="creatorBtn">✎ CREATOR</button>
+        <div style="flex:0 0 10px"></div>
+        <button class="btn" id="speedBtn">1x</button>
+        <div style="flex:1"></div>
+        <div class="status" id="stats">Génération: 0 — Vivantes: 0</div>
+        <button class="btn icon" id="info" title="Info (jeu de la vie)">i</button>
+      </div>
+
+      <div class="stage">
+        <div class="screen" id="screen">
+          <canvas id="game"></canvas>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="small">Clique pour basculer une cellule • Double-clic pour recalculer taille</div>
+        <div style="display:flex;align-items:center">
+          <div class="small">Orange • Cool-Retro-Term</div>
+          <div class="byline">By Théo Pierre</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Info modal -->
+  <div id="infoModal" class="modal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+    <div class="modal-header"><div class="modal-title">Jeu de la Vie — résumé</div><button class="close" id="infoClose">✕</button></div>
+    <div class="modal-body"><pre>
+Le jeu de la Vie est un automate cellulaire imaginé par John Horton Conway en 1970. C’est un "jeu à zéro joueur" :
+les cellules évoluent automatiquement selon des règles simples sur une grille à deux dimensions.
+
+Règles principales :
+- Une cellule vivante avec 2 ou 3 voisines vivantes reste vivante.
+- Une cellule vivante avec moins de 2 ou plus de 3 voisines meurt.
+- Une cellule morte ayant exactement 3 voisines vivantes devient vivante.
+
+Source : Wikipédia — Jeu de la Vie
+Lien : https://fr.wikipedia.org/wiki/Jeu_de_la_vie
+    </pre></div>
+  </div>
+
+  <!-- Models modal (draggable) -->
+  <div id="modelsModal" class="modal" style="display:none;left:120px;top:80px;transform:none;" aria-hidden="true">
+    <div class="modal-header"><div class="modal-title">Modèles — glisser / déposer</div><div><button class="close" id="modelsClose">✕</button></div></div>
+    <div class="modal-body">
+      <p class="muted">Clique sur un modèle pour le sélectionner, double-clic pour l'ajouter en tant que forme mobile (si applicable), ou glisse-le sur la grille pour le déposer.</p>
+      <div class="models-grid" id="modelsGrid"></div>
+    </div>
+  </div>
+
+  <!-- Creator modal -->
+  <div id="creatorModal" class="modal" style="display:none;left:140px;top:100px;transform:none;" aria-hidden="true">
+    <div class="modal-header"><div class="modal-title">Creator — import / create models</div><div><button class="close" id="creatorClose">✕</button></div></div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="modelName" placeholder="Model name" style="flex:1;padding:8px;border-radius:6px;border:1px solid rgba(255,155,61,0.06);background:#020202;color:var(--accent)" />
+          <select id="modelType" style="padding:8px;border-radius:6px;background:#020202;color:var(--accent);border:1px solid rgba(255,155,61,0.06)">
+            <option value="stable">stable</option>
+            <option value="oscillator" selected>oscillator</option>
+            <option value="spaceship">spaceship</option>
+            <option value="puffer">puffer</option>
+            <option value="methuselah">methuselah</option>
+            <option value="exploder">exploder</option>
+            <option value="spacefiller">spacefiller</option>
+            <option value="other">other</option>
+          </select>
+        </div>
+
+        <div class="creator-grid">
+          <div style="flex:0 0 auto;display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;gap:6px;align-items:center">
+              <label class="small">Cols:</label>
+              <input id="editorW" type="number" value="9" min="1" max="80" style="width:70px;padding:6px;border-radius:6px;background:#020202;color:var(--accent);border:1px solid rgba(255,155,61,0.06)" />
+              <label class="small">Rows:</label>
+              <input id="editorH" type="number" value="9" min="1" max="80" style="width:70px;padding:6px;border-radius:6px;background:#020202;color:var(--accent);border:1px solid rgba(255,155,61,0.06)" />
+            </div>
+            <canvas id="editorCanvas" class="editor-canvas" width="360" height="360" style="width:360px;height:360px"></canvas>
+            <div style="display:flex;gap:6px">
+              <button class="btn" id="clearEditor">Clear</button>
+              <button class="btn" id="randomEditor">Random</button>
+              <button class="btn" id="loadPatternBtn">Load from JSON</button>
+            </div>
+          </div>
+
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+            <label class="small">Paste pattern JSON (2D array) then press "Import"</label>
+            <textarea id="patternTextarea" style="flex:1;background:#020202;color:var(--accent);border-radius:6px;border:1px solid rgba(255,155,61,0.06);padding:8px"></textarea>
+            <div style="display:flex;gap:6px">
+              <button class="btn" id="importPattern">Import</button>
+              <button class="btn" id="saveModel">Save to Models</button>
+              <button class="btn" id="exportModel">Export JSON</button>
+              <button class="btn" id="removeCustom">Remove selected</button>
+            </div>
+            <div class="small">Saved custom models are kept in your browser (localStorage).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Utility: normalize pattern to rectangular matrix (pad rows to same width)
+  function normalizePattern(p){
+    if(!Array.isArray(p)) return [];
+    const h = p.length || 0;
+    let w = 0;
+    for(let r=0;r<h;r++){ if(Array.isArray(p[r])) w = Math.max(w, p[r].length); }
+    const out = [];
+    for(let r=0;r<h;r++){ const row = (p[r]||[]).slice(); while(row.length<w) row.push(0); out.push(row); }
+    return out;
+  }
+
+  // Core Game of Life + movers
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const cellSize = 12;
+  let cols=0, rows=0;
+  let grid = [];
+  let generation=0; let running=false; let timer=null;
+  const statsEl = document.getElementById('stats');
+
+  // speed control
+  const baseInterval = 160; // ms per generation at 1x
+  let speedFactor = 1; // 1,2,4
+  function currentInterval(){ return Math.max(16, Math.round(baseInterval / speedFactor)); }
+
+  // Base models (restored)
+  const BASE_MODELS = [
+    { id:'block', name:'Block (stable)', type:'stable', pattern:normalizePattern([[1,1],[1,1]]) },
+    { id:'beehive', name:'Beehive (stable)', type:'stable', pattern:normalizePattern([[0,1,1,0],[1,0,0,1],[0,1,1,0]]) },
+    { id:'loaf', name:'Loaf (stable)', type:'stable', pattern:normalizePattern([[0,1,1,0],[1,0,0,1],[0,1,0,1],[0,0,1,0]]) },
+    { id:'boat', name:'Boat (stable)', type:'stable', pattern:normalizePattern([[1,1,0],[1,0,1],[0,1,0]]) },
+
+    { id:'blinker', name:'Blinker (oscillator)', type:'oscillator', pattern:normalizePattern([[1,1,1]]) },
+    { id:'toad', name:'Toad (oscillator)', type:'oscillator', pattern:normalizePattern([[0,1,1,1],[1,1,1,0]]) },
+    { id:'beacon', name:'Beacon (oscillator)', type:'oscillator', pattern:normalizePattern([[1,1,0,0],[1,1,0,0],[0,0,1,1],[0,0,1,1]]) },
+
+    { id:'glider', name:'Glider (spaceship)', type:'spaceship', pattern:normalizePattern([[0,1,0],[0,0,1],[1,1,1]]) },
+    { id:'lwss', name:'Lightweight spaceship (spaceship)', type:'spaceship', pattern:normalizePattern([[0,1,1,1,1],[1,0,0,0,1],[0,0,0,0,1],[1,0,0,1,0]]) },
+
+    { id:'rpent', name:'R-pentomino (methuselah)', type:'methuselah', pattern:normalizePattern([[0,1,1],[1,1,0],[0,1,0]]) },
+    { id:'small-exploder', name:'Small Exploder (exploder)', type:'exploder', pattern:normalizePattern([[0,1,0],[1,1,1],[1,0,1],[0,1,0]]) },
+    { id:'puffer', name:'Puffer (demo)', type:'puffer', pattern:normalizePattern([[1,1,0],[1,0,1],[1,1,1]]) },
+    { id:'acorn', name:'Acorn (methuselah)', type:'methuselah', pattern:normalizePattern([[0,1,0,0,0,0,0],[0,0,0,1,0,0,0],[1,1,0,0,1,1,1]]) },
+    { id:'diehard', name:'Diehard (methuselah)', type:'methuselah', pattern:normalizePattern([[0,0,0,0,0,0,1,0,0],[1,1,1,1,1,0,0,0,0]]) },
+    { id:'spacefiller', name:'Spacefiller (demo)', type:'spacefiller', pattern:normalizePattern([[1,1,1],[1,0,1],[1,1,1]]) }
+  ];
+
+  // User-supplied Kok's galaxy (kept)
+  const USER_MODELS = [
+    { id:"koks_galaxy_user", name:"Kok's galaxy (user)", type:'oscillator', pattern:normalizePattern([
+      [1,1,1,1,1,1,0,1,1],
+      [1,1,1,1,1,1,0,1,1],
+      [0,0,0,0,0,0,0,1,1],
+      [1,1,0,0,0,0,0,1,1],
+      [1,1,0,0,0,0,0,1,1],
+      [1,1,0,0,0,0,0,1,1],
+      [1,1,0,0,0,0,0,0,0],
+      [1,1,0,1,1,1,1,1,1],
+      [1,1,0,1,1,1,1,1,1]
+    ]) }
+  ];
+
+  // New oscillator models requested (English names)
+  const EXTRA_OSCILLATORS = [
+    { id:'diagonal_user', name:'Diagonal', type:'oscillator', pattern:normalizePattern([
+      [0,0,0,0,0,0,0,1,1],
+      [0,0,0,0,0,0,0,1,0],
+      [0,0,0,0,1,1,0,1,0],
+      [0,0,0,1,0,0,1,0,0],
+      [0,0,0,1,0,0,0,0,0],
+      [0,0,0,0,0,1,0,0,0],
+      [0,0,1,0,0,1,0,0,0],
+      [0,1,0,1,1,0,0,0,0],
+      [0,1,0,0,0,0,0,0,0],
+      [1,1,0,0,0,0,0,0,0]
+    ]) },
+
+    { id:'clock_user', name:'Clock', type:'oscillator', pattern:normalizePattern([
+      [0,0,0,0,0,0,1,1,0,0,0,0],
+      [0,0,0,0,0,0,1,1,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,1,1,1,1,0,0,0,0],
+      [1,1,0,1,0,0,1,0,1,0,0,0],
+      [1,1,0,1,0,1,0,0,1,0,0,0],
+      [0,0,0,1,0,1,0,0,1,0,1,1],
+      [0,0,0,1,0,0,0,0,1,0,1,1],
+      [0,0,0,0,1,1,1,1,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,1,1,0,0,0,0,0,0],
+      [0,0,0,0,1,1,0,0,0,0,0,0]
+    ]) },
+
+    { id:'fountain_user', name:'Fountain', type:'oscillator', pattern:normalizePattern([
+      [0,0,0,0,0,0,0,0],
+      [0,0,0,1,1,0,0,0],
+      [0,1,1,0,0,1,1,0],
+      [0,1,0,0,0,0,1,0],
+      [0,0,1,0,0,1,0,0],
+      [1,0,1,0,0,1,0,1],
+      [1,1,0,0,0,0,1,1]
+    ]) }
+  ];
+
+  // Compose MODELS from base + user + extra + any stored custom
+  let MODELS = [];
+
+  function loadCustomModels(){ try{ const raw = localStorage.getItem('gol_custom_models'); if(!raw) return []; const arr = JSON.parse(raw); return Array.isArray(arr)?arr:[]; }catch(e){return [];} }
+  function saveCustomModels(arr){ try{ localStorage.setItem('gol_custom_models', JSON.stringify(arr)); }catch(e){console.warn('Could not save custom models',e);} }
+
+  function rebuildModels(){ MODELS = []; MODELS.push(...BASE_MODELS); MODELS.push(...USER_MODELS); MODELS.push(...EXTRA_OSCILLATORS); const customs = loadCustomModels(); if(customs && customs.length) MODELS.push(...customs); }
+  rebuildModels();
+
+  let movers = []; // {pattern,x,y,vx,vy}
+  let isPointerDown=false; let lastToggledCell = null;
+
+  function fitCanvas(){ const screen=document.getElementById('screen'); const style=getComputedStyle(screen); const padX=parseFloat(style.paddingLeft)+parseFloat(style.paddingRight); const padY=parseFloat(style.paddingTop)+parseFloat(style.paddingBottom); const w=Math.max(240, screen.clientWidth-padX); const h=Math.max(160, screen.clientHeight-padY); const dpr=Math.min(window.devicePixelRatio||1,2); canvas.width=Math.floor(w*dpr); canvas.height=Math.floor(h*dpr); canvas.style.width=w+'px'; canvas.style.height=h+'px'; ctx.setTransform(dpr,0,0,dpr,0,0); cols=Math.floor(w/cellSize); rows=Math.floor(h/cellSize); initGrid(); draw(); updateStats(); }
+  function initGrid(){ const old = grid.map?grid.map(r=>r.slice()):null; const newGrid = Array.from({length:rows}, ()=>Array(cols).fill(0)); if(old){ const oy=Math.floor((rows-old.length)/2); const ox=Math.floor((cols-(old[0]||[]).length)/2); for(let y=0;y<old.length && (y+oy)<rows;y++) for(let x=0;x<(old[0]||[]).length && (x+ox)<cols;x++) if(y+oy>=0&&x+ox>=0) newGrid[y+oy][x+ox]=old[y][x]; } grid=newGrid; }
+
+  function draw(){ ctx.fillStyle='#030303'; ctx.fillRect(0,0,canvas.width/(window.devicePixelRatio||1), canvas.height/(window.devicePixelRatio||1)); ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent')||'#ff9b3d'; let alive=0; for(let y=0;y<rows;y++){ for(let x=0;x<cols;x++){ if(grid[y][x]){ ctx.fillRect(x*cellSize+1, y*cellSize+1, cellSize-1, cellSize-1); alive++; } } } ctx.strokeStyle='rgba(255,155,61,0.04)'; ctx.lineWidth=1; for(let x=0;x<=cols;x++){ const px=x*cellSize+0.5; ctx.beginPath(); ctx.moveTo(px,0); ctx.lineTo(px, rows*cellSize); ctx.stroke(); } for(let y=0;y<=rows;y++){ const py=y*cellSize+0.5; ctx.beginPath(); ctx.moveTo(0,py); ctx.lineTo(cols*cellSize, py); ctx.stroke(); } updateStats(alive); }
+
+  function countNeighbors(x,y){ let n=0; for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){ if(dx===0&&dy===0) continue; const nx=x+dx, ny=y+dy; if(nx<0||ny<0||nx>=cols||ny>=rows) continue; if(grid[ny][nx]) n++; } return n; }
+
+  function step(){ const next = Array.from({length:rows}, ()=>Array(cols).fill(0)); let alive=0; for(let y=0;y<rows;y++){ for(let x=0;x<cols;x++){ const n = countNeighbors(x,y); if(grid[y][x]) next[y][x] = (n===2||n===3)?1:0; else next[y][x] = (n===3)?1:0; if(next[y][x]) alive++; } } movers.forEach(m=>{ m.x += m.vx; m.y += m.vy; if(m.x<0){ m.x=0; m.vx*=-1; } if(m.y<0){ m.y=0; m.vy*=-1; } const ph=m.pattern.length, pw=(m.pattern[0]||[]).length; if(m.x+pw>=cols){ m.x=cols-pw; m.vx*=-1; } if(m.y+ph>=rows){ m.y=rows-ph; m.vy*=-1; } for(let py=0; py<ph; py++){ for(let px=0; px<pw; px++){ if(m.pattern[py][px]){ const gx=m.x+px, gy=m.y+py; if(gx>=0&&gy>=0&&gx<cols&&gy<rows) next[gy][gx]=1; } } } }); grid = next; generation++; draw(); updateStats(alive); }
+
+  function updateStats(aliveCount){ if(typeof aliveCount==='undefined'){ let c=0; for(let y=0;y<rows;y++) for(let x=0;x<cols;x++) if(grid[y][x]) c++; aliveCount=c; } statsEl.textContent = `Génération: ${generation} — Vivantes: ${aliveCount}`; }
+
+  // controls
+  const startBtn = document.getElementById('start'); const stopBtn = document.getElementById('stop'); const stepBtn = document.getElementById('step'); const randomBtn = document.getElementById('random'); const clearBtn = document.getElementById('clear'); const speedBtn = document.getElementById('speedBtn');
+  function setRunning(on){ running = on; if(timer) clearInterval(timer); if(running) timer = setInterval(step, currentInterval()); }
+  startBtn.addEventListener('click', ()=>{ setRunning(true); }); stopBtn.addEventListener('click', ()=>{ setRunning(false); }); stepBtn.addEventListener('click', ()=>{ step(); }); randomBtn.addEventListener('click', ()=>{ for(let y=0;y<rows;y++) for(let x=0;x<cols;x++) grid[y][x]=Math.random()>0.78?1:0; generation=0; draw(); }); clearBtn.addEventListener('click', ()=>{ for(let y=0;y<rows;y++) for(let x=0;x<cols;x++) grid[y][x]=0; generation=0; draw(); });
+
+  speedBtn.addEventListener('click', ()=>{ if(speedFactor===1) speedFactor=2; else if(speedFactor===2) speedFactor=4; else speedFactor=1; speedBtn.textContent = speedFactor + 'x'; if(running){ setRunning(true); } });
+
+  // place mode & drag/toggle painting on canvas
+  let placePattern = null; function activatePlaceMode(pattern){ placePattern = normalizePattern(pattern); statsEl.textContent = 'Place mode: click to drop model (Esc to cancel)'; setTimeout(()=>updateStats(),3000); }
+  function getCellFromEvent(e){ const rect=canvas.getBoundingClientRect(); const cx = (e.clientX - rect.left) / (rect.width); const cy = (e.clientY - rect.top) / (rect.height); const x = Math.floor(cx * cols); const y = Math.floor(cy * rows); return {x,y}; }
+  canvas.addEventListener('pointerdown', (e)=>{ e.preventDefault(); isPointerDown=true; const {x,y} = getCellFromEvent(e); lastToggledCell = `${x},${y}`; if(placePattern){ pastePatternAt(placePattern, x, y); placePattern=null; draw(); return; } grid[y][x] = grid[y][x]?0:1; draw(); });
+  canvas.addEventListener('pointermove', (e)=>{ if(!isPointerDown) return; const {x,y} = getCellFromEvent(e); const key=`${x},${y}`; if(key===lastToggledCell) return; lastToggledCell=key; if(placePattern){ pastePatternAt(placePattern, x, y); placePattern=null; draw(); return; } grid[y][x] = grid[y][x]?0:1; draw(); });
+  window.addEventListener('pointerup', (e)=>{ isPointerDown=false; lastToggledCell=null; });
+
+  canvas.addEventListener('dragover', (e)=>{ e.preventDefault(); e.dataTransfer.dropEffect='copy'; });
+  canvas.addEventListener('drop', (e)=>{ e.preventDefault(); const rect=canvas.getBoundingClientRect(); const x=Math.floor((e.clientX-rect.left)/(canvas.clientWidth/cols)); const y=Math.floor((e.clientY-rect.top)/(canvas.clientHeight/rows)); let data=e.dataTransfer.getData('text/plain'); try{ const pattern = JSON.parse(data); pastePatternAt(pattern, x, y); draw(); }catch(err){ console.warn('Invalid pattern dropped'); } });
+
+  function pastePatternAt(pattern, cx, cy){ const ph=pattern.length; const pw=(pattern[0]||[]).length; const oy=Math.floor(ph/2); const ox=Math.floor(pw/2); for(let py=0;py<ph;py++){ for(let px=0;px<pw;px++){ const gx=cx+px-ox; const gy=cy+py-oy; if(gx>=0&&gy>=0&&gx<cols&&gy<rows && pattern[py] && pattern[py][px]) grid[gy][gx] = pattern[py][px]; } } }
+
+  // populate models grid with grouped models (titles on left structure preserved)
+  const modelsBtn = document.getElementById('modelsBtn'); const modelsModal = document.getElementById('modelsModal'); const modelsClose = document.getElementById('modelsClose'); const modelsGrid = document.getElementById('modelsGrid');
+  modelsBtn.addEventListener('click', ()=>{ rebuildModels(); modelsModal.style.display='block'; populateModelsGrid(); }); modelsClose.addEventListener('click', (e)=>{ e.stopPropagation(); modelsModal.style.display='none'; });
+
+  function populateModelsGrid(){ modelsGrid.innerHTML='';
+    const groups = {};
+    MODELS.forEach(m=>{ if(!groups[m.type]) groups[m.type]=[]; groups[m.type].push(m); });
+    const order = ['stable','oscillator','spaceship','puffer','methuselah','exploder','spacefiller','other'];
+    order.forEach(type=>{
+      if(!groups[type]) return;
+      const section = document.createElement('div'); section.className='models-group';
+      const header = document.createElement('div'); header.className='section-title'; header.textContent = type.toUpperCase(); section.appendChild(header);
+      const gridWrap = document.createElement('div'); gridWrap.style.display='grid'; gridWrap.style.gridTemplateColumns='repeat(auto-fill,minmax(140px,1fr))'; gridWrap.style.gap='10px';
+      groups[type].forEach(m=>{
+        const card=document.createElement('div'); card.className='model-card'; card.draggable=true; const mini=document.createElement('canvas'); mini.className='model-canvas'; mini.width=120; mini.height=80; const name=document.createElement('div'); name.className='model-name'; name.textContent=m.name; const t=document.createElement('div'); t.className='model-type'; t.textContent=m.type; card.appendChild(mini); card.appendChild(name); card.appendChild(t); gridWrap.appendChild(card); drawModelPreview(mini,m.pattern);
+        card.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/plain', JSON.stringify(m.pattern)); });
+        card.addEventListener('click', ()=>{ activatePlaceMode(m.pattern); modelsModal.style.display='none'; });
+        card.addEventListener('dblclick', ()=>{ if(m.type==='spaceship' || m.type==='puffer' || m.type==='oscillator'){ const ph=m.pattern.length; const pw=(m.pattern[0]||[]).length; const startX=Math.max(0, Math.min(cols-pw, Math.floor(cols/2-pw/2))); const startY=Math.max(0, Math.min(rows-ph, Math.floor(rows/2-ph/2))); movers.push({pattern:m.pattern.map(r=>r.slice()), x:startX, y:startY, vx:1, vy:0}); modelsModal.style.display='none'; } else { activatePlaceMode(m.pattern); modelsModal.style.display='none'; } });
+      });
+      section.appendChild(gridWrap);
+      modelsGrid.appendChild(section);
+    });
+  }
+
+  function drawModelPreview(cnv, pattern){ const c = cnv.getContext('2d'); c.clearRect(0,0,cnv.width,cnv.height); c.fillStyle='#020202'; c.fillRect(0,0,cnv.width,cnv.height); const pH = pattern.length; const pW = (pattern[0]||[]).length; if(pH===0||pW===0) return; const pad=4; const cell = Math.max(2, Math.floor(Math.min((cnv.width-pad*2)/pW, (cnv.height-pad*2)/pH)) ); const ox = Math.floor((cnv.width - cell*pW)/2); const oy = Math.floor((cnv.height - cell*pH)/2); c.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent')||'#ff9b3d'; for(let y=0;y<pH;y++) for(let x=0;x<pW;x++) if(pattern[y][x]) c.fillRect(ox+x*cell, oy+y*cell, cell-1, cell-1); }
+
+  // make models modal draggable
+  (function makeDraggable(modal){ let header = modal.querySelector('.modal-header'); let isDown=false, startX=0, startY=0, origX=0, origY=0; header.addEventListener('pointerdown', (e)=>{ if(e.target.closest('button')) return; isDown=true; header.setPointerCapture(e.pointerId); startX = e.clientX; startY = e.clientY; const rect = modal.getBoundingClientRect(); origX = rect.left; origY = rect.top; modal.style.transform='none'; modal.style.left = origX + 'px'; modal.style.top = origY + 'px'; }); window.addEventListener('pointermove', (e)=>{ if(!isDown) return; const dx = e.clientX - startX; const dy = e.clientY - startY; modal.style.left = (origX + dx) + 'px'; modal.style.top = (origY + dy) + 'px'; }); window.addEventListener('pointerup', (e)=>{ if(!isDown) return; isDown=false; try{ header.releasePointerCapture(e.pointerId);}catch(_){} }); })(modelsModal);
+
+  // Info modal wiring
+  const infoBtn = document.getElementById('info'); const infoModal = document.getElementById('infoModal'); const infoClose = document.getElementById('infoClose');
+  infoBtn.addEventListener('click', ()=>{ infoModal.style.display = 'block'; });
+  infoClose.addEventListener('click', ()=>{ infoModal.style.display = 'none'; });
+
+  // ----- Creator modal logic -----
+  const creatorBtn = document.getElementById('creatorBtn'); const creatorModal = document.getElementById('creatorModal'); const creatorClose = document.getElementById('creatorClose');
+  const editorCanvas = document.getElementById('editorCanvas'); const editorCtx = editorCanvas.getContext('2d');
+  const editorW = document.getElementById('editorW'); const editorH = document.getElementById('editorH');
+  const patternTextarea = document.getElementById('patternTextarea'); const modelName = document.getElementById('modelName'); const modelType = document.getElementById('modelType');
+
+  let editorPattern = []; function initEditor(w=9,h=9){ editorPattern = Array.from({length:h}, ()=>Array(w).fill(0)); editorW.value = w; editorH.value = h; drawEditor(); }
+  function drawEditor(){ const w = parseInt(editorW.value,10); const h = parseInt(editorH.value,10); const cw = editorCanvas.width; const ch = editorCanvas.height; editorCtx.fillStyle='#020202'; editorCtx.fillRect(0,0,cw,ch); const cell = Math.floor(Math.min(cw/w, ch/h)); const ox = Math.floor((cw - cell*w)/2); const oy = Math.floor((ch - cell*h)/2); editorCtx.strokeStyle='rgba(255,155,61,0.06)'; for(let y=0;y<h;y++){ for(let x=0;x<w;x++){ const px = ox + x*cell; const py = oy + y*cell; if(editorPattern[y] && editorPattern[y][x]){ editorCtx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent')||'#ff9b3d'; editorCtx.fillRect(px+1,py+1,cell-2,cell-2); } editorCtx.strokeRect(px+0.5,py+0.5,cell,cell); } } }
+
+  editorCanvas.addEventListener('click',(e)=>{ const rect = editorCanvas.getBoundingClientRect(); const mx = e.clientX - rect.left; const my = e.clientY - rect.top; const w = parseInt(editorW.value,10); const h = parseInt(editorH.value,10); const cell = Math.floor(Math.min(editorCanvas.width/w, editorCanvas.height/h)); const ox = Math.floor((editorCanvas.width - cell*w)/2); const oy = Math.floor((editorCanvas.height - cell*h)/2); const x = Math.floor((mx - ox)/cell); const y = Math.floor((my - oy)/cell); if(x>=0 && y>=0 && x<w && y<h){ editorPattern[y][x] = editorPattern[y][x]?0:1; drawEditor(); } });
+  editorW.addEventListener('change', ()=>{ const w=parseInt(editorW.value,10)||9; const h=parseInt(editorH.value,10)||9; initEditor(w,h); });
+  editorH.addEventListener('change', ()=>{ const w=parseInt(editorW.value,10)||9; const h=parseInt(editorH.value,10)||9; initEditor(w,h); });
+
+  document.getElementById('clearEditor').addEventListener('click', ()=>{ for(let y=0;y<editorPattern.length;y++) for(let x=0;x<editorPattern[0].length;x++) editorPattern[y][x]=0; drawEditor(); });
+  document.getElementById('randomEditor').addEventListener('click', ()=>{ for(let y=0;y<editorPattern.length;y++) for(let x=0;x<editorPattern[0].length;x++) editorPattern[y][x]=Math.random()>0.7?1:0; drawEditor(); });
+
+  document.getElementById('loadPatternBtn').addEventListener('click', ()=>{ try{ const data = JSON.parse(patternTextarea.value); const p = normalizePattern(data); editorW.value = p[0].length; editorH.value = p.length; editorPattern = p.map(r=>r.slice()); drawEditor(); }catch(e){ alert('Invalid JSON pattern'); } });
+
+  document.getElementById('importPattern').addEventListener('click', ()=>{ try{ const data = JSON.parse(patternTextarea.value); const p = normalizePattern(data); editorW.value = p[0].length; editorH.value = p.length; editorPattern = p.map(r=>r.slice()); drawEditor(); alert('Pattern imported to editor'); }catch(e){ alert('Invalid JSON'); } });
+
+  document.getElementById('saveModel').addEventListener('click', ()=>{
+    const name = (modelName.value||'custom').trim(); const type = modelType.value||'other'; const pattern = editorPattern.map(r=>r.slice()); const id = 'custom_'+Date.now(); const obj = {id,name,type,pattern}; const customs = loadCustomModels(); customs.push(obj); saveCustomModels(customs); rebuildModels(); populateModelsGrid(); alert('Model saved to Models (localStorage)'); });
+
+  document.getElementById('exportModel').addEventListener('click', ()=>{ const p = editorPattern; const blob = new Blob([JSON.stringify(p)],{type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download=(modelName.value||'pattern')+'.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); });
+
+  document.getElementById('removeCustom').addEventListener('click', ()=>{
+    const name = (modelName.value||'').trim(); if(!name){ alert('Enter model name to remove'); return; }
+    let customs = loadCustomModels(); const before = customs.length; customs = customs.filter(c=>c.name !== name); if(customs.length===before){ alert('No custom model by that name'); return; } saveCustomModels(customs); rebuildModels(); populateModelsGrid(); alert('Removed custom models named '+name); });
+
+  creatorBtn.addEventListener('click', ()=>{ creatorModal.style.display='block'; initEditor(parseInt(editorW.value,10)||9, parseInt(editorH.value,10)||9); });
+  creatorClose.addEventListener('click', ()=>{ creatorModal.style.display='none'; });
+
+  // make creator modal draggable
+  (function makeDraggable2(modal){ let header = modal.querySelector('.modal-header'); let isDown=false, startX=0, startY=0, origX=0, origY=0; header.addEventListener('pointerdown', (e)=>{ if(e.target.closest('button')) return; isDown=true; header.setPointerCapture(e.pointerId); startX = e.clientX; startY = e.clientY; const rect = modal.getBoundingClientRect(); origX = rect.left; origY = rect.top; modal.style.transform='none'; modal.style.left = origX + 'px'; modal.style.top = origY + 'px'; }); window.addEventListener('pointermove', (e)=>{ if(!isDown) return; const dx = e.clientX - startX; const dy = e.clientY - startY; modal.style.left = (origX + dx) + 'px'; modal.style.top = (origY + dy) + 'px'; }); window.addEventListener('pointerup', (e)=>{ if(!isDown) return; isDown=false; try{ header.releasePointerCapture(e.pointerId);}catch(_){} }); })(creatorModal);
+
+  // keyboard shortcuts & initial
+  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ placePattern=null; updateStats(); infoModal.style.display='none'; modelsModal.style.display='none'; creatorModal.style.display='none'; } if(e.code==='Space'){ e.preventDefault(); if(running){ setRunning(false); } else { setRunning(true); } } if(e.key==='r'||e.key==='R') randomBtn.click(); if(e.key==='c'||e.key==='C') clearBtn.click(); if(e.code==='ArrowRight') stepBtn.click(); });
+  let resizeTimer=null; window.addEventListener('resize', ()=>{ clearTimeout(resizeTimer); resizeTimer=setTimeout(fitCanvas,120); }); fitCanvas();
+
+  window.gol = {getGrid: ()=>grid, step, fitCanvas, MODELS};
+</script>
+</body>
+</html>

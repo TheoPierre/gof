@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Un push qui en remplace un autre annule la vérification devenue inutile.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Node 24 exécute TypeScript nativement : c'est ce qui permet aux
+          # paquets de n'avoir ni build ni dépendance.
+          node-version: '24'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Vecteurs de référence et tests
+        run: npm test
+
+      - name: Build du Labo
+        run: npm run build -w @zp/lab
+
+  # Le vecteur Acorn demande une grille de 2816² et plusieurs minutes : il ne
+  # peut pas tourner à chaque commit, mais il ne doit pas non plus dormir.
+  slow-vectors:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Vecteur Acorn
+        run: npm run test:slow
