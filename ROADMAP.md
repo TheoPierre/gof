@@ -23,7 +23,7 @@ fondation des deux autres scénarios — rien n'est perdu si on continue.
 | Phase | Semaines | Livrable | Fini quand | État |
 |---|---|---|---|---|
 | **P0** Cadrage | 1 | Docs, squelette du monorepo, outillage | Suite de tests verte sur un dépôt neuf | ✅ **fait** |
-| **P1** Moteur + codecs | 3 | Bitboard, topologies, règles B/S, Immigration, RLE / .cells / apgcode, Web Worker | Les vecteurs passent, ≥ 30 gén./s à 1 M cellules | 🟡 **~85 %** |
+| **P1** Moteur + codecs | 3 | Bitboard, topologies, règles B/S, Immigration, RLE / .cells / apgcode, Web Worker | Les vecteurs passent, ≥ 30 gén./s à 1 M cellules | 🟡 **~90 %** |
 | **P2** Le Labo | 4 | Canvas infini zoom/pan, édition, undo, bibliothèque, import/export, système de design, PWA | **En ligne, gratuit, sans compte.** Show HN | ✅ **close** |
 | **P3** Comptes + galerie | 3 | Auth, Postgres, sauvegarde cloud, profils, galerie, remix, votes, modération | Un inconnu publie un motif, un autre le remixe | ⬜ |
 | **P4** Quotidienne + Entraîneur | 5 | 6 types de puzzle, éditeur de puzzles, worker de vérification, classement de puzzles, séries, carte de partage | **Le produit devient un jeu.** Lancement 2 | ⬜ |
@@ -49,6 +49,10 @@ Fait :
       R-pentomino, canon de Gosper — 20 tests, ~1 s
 - [x] Vecteur Acorn en suite lente
 - [x] Banc de mesure — 884 gén./s à 1024², soit 29× le seuil
+- [x] **`analyse()`** — classification par observation : nature morte,
+      oscillateur de période n, vaisseau de vitesse c/n, ou « instable » quand
+      rien ne se referme. Vérifiée sur les 21 motifs du catalogue. C'est la
+      brique d'identification dont le Codex aura besoin en P7.
 - [x] **`@zp/worker`** — protocole, cœur de simulation testable, adaptateurs
       navigateur, client thread principal. Publication des trames par
       SharedArrayBuffer avec repli postMessage. 17 tests, horloge pilotée à la
@@ -59,8 +63,6 @@ Reste :
 - [ ] Règle **Immigration** à deux couleurs (nécessaire à l'Arène, P8)
 - [ ] Codec `.cells` (format plaintext du LifeWiki)
 - [ ] **apgcode** — hachage canonique d'un objet stabilisé (nécessaire au Codex, P7)
-- [ ] Détection de période et de déplacement (classer un motif : nature morte,
-      oscillateur de période n, vaisseau de vitesse c/n)
 - [ ] Optimisation mémoire : cache glissant de trois lignes au lieu de deux
       tampons pleins
 
@@ -135,8 +137,10 @@ Reporté, avec sa raison :
       et ce que le test de marché doit mesurer.
 - [x] Dépôt publié sur [github.com/TheoPierre/gof](https://github.com/TheoPierre/gof),
       CI verte — le vecteur Acorn compris.
-- [ ] **Brancher Vercel** : racine `apps/lab`, Node 24. Puis vérifier le badge
-      `SAB` sur le domaine de production.
+- [x] **En ligne** sur [gof-lab.vercel.app](https://gof-lab.vercel.app/) —
+      en-têtes COOP/COEP servis, badge `SAB`, canon de Gosper vérifié en
+      production (36 cellules, 41 après 30 générations).
+- [ ] Renseigner `NEXT_PUBLIC_POSTHOG_KEY` sur Vercel.
 
 ### Vérifié dans le navigateur (2026-08-21)
 
