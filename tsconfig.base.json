@@ -11,6 +11,11 @@
     "exactOptionalPropertyTypes": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
+    // TypeScript remonte les dossiers parents à la recherche de
+    // `node_modules/@types`. Un paquet oublié dans un dossier au-dessus du
+    // dépôt suffit alors à faire passer un typecheck qui échouera en CI. On
+    // ancre la recherche sur le dépôt.
+    "typeRoots": ["./node_modules/@types"],
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "skipLibCheck": true,
