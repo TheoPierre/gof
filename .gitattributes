@@ -1,0 +1,15 @@
+# Fins de ligne normalisées en LF dans le dépôt, quelle que soit la machine.
+# Sans ça, un dépôt écrit sous Windows et construit sous Linux accumule des
+# différences invisibles et des diffs illisibles.
+* text=auto eol=lf
+
+# Fichiers dont le contenu ne doit jamais être réécrit.
+*.png binary
+*.jpg binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ico binary
+
+# Le lockfile est généré : inutile de le proposer à la relecture.
+package-lock.json linguist-generated=true -diff
