@@ -415,6 +415,35 @@ première impression ne se rejoue pas.
 
 ---
 
+### D-024 — Les pages de motifs affichent des faits mesurés, pas recopiés
+**2026-08-21**
+
+Une page par motif nommé, rendue à la construction du site. C'est le canal
+d'acquisition principal identifié dans le plan : des gens cherchent « glider
+game of life » tous les jours, et la référence actuelle est une encyclopédie
+sans simulation jouable. On ne gagnera pas sur le contenu — le LifeWiki a
+cinquante ans d'avance — mais on peut gagner sur l'expérience, et renvoyer
+vers lui pour le reste.
+
+Le choix qui compte : **les caractéristiques affichées sont calculées par le
+moteur au moment du build**, pas saisies à la main. `analyse()` fait tourner
+le motif et observe s'il retrouve sa forme : au même endroit c'est un
+oscillateur, ailleurs un vaisseau, et le déplacement donne la vitesse.
+
+Une page qui annonce « période 3 » l'annonce donc parce que le moteur vient de
+le vérifier, et une erreur de classement serait un test rouge plutôt qu'un
+commentaire de forum. Les mathusalems ressortent « sans période observée » —
+mieux vaut ne pas savoir que se tromper.
+
+`analyse()` est aussi la brique dont le Codex aura besoin en P7 pour
+identifier ce qu'une soupe laisse derrière elle. Elle est écrite une fois.
+
+Chaque page renvoie vers le Labo par `?motif=<id>`, qui ouvre sur ce motif
+plutôt que sur une soupe : arriver depuis la page du canon de Gosper pour
+tomber sur du bruit serait absurde.
+
+---
+
 ## À trancher
 - **Licences de contenu.** Le LifeWiki est en CC BY-SA : attribution
   obligatoire, et la clause de partage à l'identique demande un examen pour une

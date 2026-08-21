@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { patternById } from '@zp/content';
 import { GridRenderer, Viewport, type RenderStyle } from '@zp/render';
 import { SimulationClient, type SimCommand } from '@zp/worker';
 
@@ -142,7 +143,18 @@ export default function Lab() {
       viewport.centerX = 256;
       viewport.centerY = 256;
       viewport.scale = 4;
-      client.send({ type: 'randomise', density: 0.3, seed: (Math.random() * 2 ** 31) | 0 });
+      // Les pages de motifs renvoient ici avec « ?motif=<id> ». On ouvre alors
+      // sur le motif demandé plutôt que sur une soupe : arriver depuis la page
+      // du canon de Gosper pour tomber sur du bruit serait absurde.
+      const demande = new URLSearchParams(globalThis.location.search).get('motif');
+      const motif = demande ? patternById(demande) : undefined;
+      if (motif) {
+        client.send({ type: 'stamp', rle: motif.rle, x: 256, y: 256 });
+        viewport.scale = 8;
+        announce(motif.name + ' chargé depuis sa page.');
+      } else {
+        client.send({ type: 'randomise', density: 0.3, seed: (Math.random() * 2 ** 31) | 0 });
+      }
       setReady(true);
       raf = requestAnimationFrame(loop);
 
@@ -630,6 +642,7 @@ export default function Lab() {
             <a href="https://conwaylife.com/wiki/" rel="noreferrer noopener" target="_blank">
               Motifs : LifeWiki, CC BY-SA
             </a>
+            <a href="/motifs">Les motifs</a>
             <a href="/a-propos">À propos</a>
           </div>
         </div>

@@ -24,6 +24,18 @@ export interface CataloguePattern {
   rle: string;
   /** Ce qu'il fait, en une phrase. */
   note: string;
+  /**
+   * Titre de la page LifeWiki, si le nom affiché n'y correspond pas. Renvoyer
+   * vers la source est dû, et c'est aussi là que se trouve l'histoire
+   * complète de chaque motif — qu'on ne recopie pas ici.
+   */
+  wiki?: string;
+}
+
+/** Adresse de la page LifeWiki d'un motif. */
+export function wikiUrl(pattern: CataloguePattern): string {
+  const title = pattern.wiki ?? pattern.name.replace(/ /g, '_');
+  return `https://conwaylife.com/wiki/${encodeURI(title)}`;
 }
 
 export const CATEGORY_LABELS: Record<PatternCategory, string> = {
@@ -188,6 +200,7 @@ export const CATALOGUE: CataloguePattern[] = [
   {
     id: 'gosper-gun',
     name: 'Canon à planeurs de Gosper',
+    wiki: 'Gosper_glider_gun',
     category: 'croissance',
     rle: '24bo$22bobo$12b2o6b2o12b2o$11bo3bo4b2o12b2o$2o8bo5bo3b2o$2o8bo3bob2o4bobo$10bo5bo7bo$11bo3bo$12b2o!',
     note: 'Lâche un planeur toutes les 30 générations, indéfiniment. Bill Gosper, 1970 — le premier motif à croissance infinie découvert.',

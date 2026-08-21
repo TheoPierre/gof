@@ -31,7 +31,8 @@ fondation des deux autres scénarios — rien n'est perdu si on continue.
 | **P6** Abonnement | 2 | Lemon Squeezy, paliers Terminal / Root, droits d'accès, boutique, CGU/RGPD | **Première transaction encaissée** | ⬜ |
 | **P7** Codex | 3 | Identification apgcode, catalogue, découvertes, raretés | Une soupe débloque une entrée vérifiée | ⬜ |
 | **P8** Arène | 6 | Constructeur de loadout, appariement, Glicko, saisons, replays, bots, analyse d'après-match | Deux comptes s'affrontent, le classement bouge | ⬜ |
-| Ensuite | — | i18n FR/EN, accessibilité, HashLife, SEO des pages de motifs, offre Classe | Continu | ⬜ |
+| Ensuite | — | i18n FR/EN, HashLife, offre Classe | Continu | ⬜ |
+| Hors phase | — | **Pages de motifs** — 21 pages statiques, faits mesurés par le moteur, sitemap, robots, lien profond vers le Labo | Fait le 2026-08-21 | ✅ |
 
 ---
 

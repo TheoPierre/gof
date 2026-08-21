@@ -4,6 +4,7 @@ export {
   CATEGORY_ORDER,
   patternById,
   patternsByCategory,
+  wikiUrl,
   type CataloguePattern,
   type PatternCategory,
 } from './catalogue.ts';

@@ -535,6 +535,164 @@ button {
   border: 0;
 }
 
+/* ──────────────── Lecteur de motif, sur les pages de contenu ──────────────── */
+
+.player {
+  margin: 24px 0 28px;
+  border: 1px solid var(--zp-line);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--zp-field);
+}
+
+.player-stage {
+  height: 300px;
+}
+
+.player-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.player-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--zp-line);
+  background: var(--zp-surface);
+}
+
+.player-gen {
+  margin-left: auto;
+  color: var(--zp-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-gen b {
+  color: var(--zp-amber);
+  font-weight: 600;
+}
+
+/* ──────────────── Faits mesurés ──────────────── */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  margin: 0 0 12px;
+  background: var(--zp-line);
+  border: 1px solid var(--zp-line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.facts > div {
+  background: var(--zp-surface);
+  padding: 11px 13px;
+}
+
+.facts dt {
+  color: var(--zp-muted);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.facts dd {
+  margin: 0;
+  color: var(--zp-amber);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rle {
+  margin: 0 0 1em;
+  padding: 12px 14px;
+  background: var(--zp-field);
+  border: 1px solid var(--zp-line);
+  border-radius: 6px;
+  color: var(--zp-text);
+  font-size: 11.5px;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.cta {
+  margin: 26px 0;
+}
+
+.cta .btn {
+  text-decoration: none;
+}
+
+/* ──────────────── Index des motifs ──────────────── */
+
+.index {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.index li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--zp-line);
+  margin: 0;
+}
+
+.index li a {
+  color: var(--zp-amber);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.index li a:hover {
+  text-decoration: underline;
+}
+
+.index li span {
+  color: var(--zp-muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.peers {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.peers li {
+  margin: 0;
+}
+
+.peers a {
+  display: inline-block;
+  padding: 5px 10px;
+  border: 1px solid var(--zp-line);
+  border-radius: 4px;
+  color: var(--zp-amber);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.peers a:hover {
+  border-color: var(--zp-edge);
+  background: var(--zp-amber-faint);
+}
+
 /* ─────────────────────────── Écrans étroits ───────────────────────────
  *
  * Sur un téléphone, un panneau de 260 px posé à côté de la scène ne laissait
