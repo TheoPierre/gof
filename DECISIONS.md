@@ -335,6 +335,27 @@ dépôt.
 
 ---
 
+### D-020 — Chaque paquet déclare ce dont il se sert
+**2026-08-21**
+
+Deux échecs le même jour, même cause : une dépendance réelle non déclarée, que
+npm fournissait par hoisting sur la machine de développement.
+
+- `@types/node` manquait partout, et TypeScript le trouvait dans un
+  `node_modules` traînant *au-dessus* du dépôt. La CI l'a attrapé (D-019).
+- `typescript` n'était déclaré qu'à la racine. La CI ne l'a pas attrapé — elle
+  installe tout le monorepo — mais Vercel si, car il n'installe que les
+  dépendances du workspace visé.
+
+La règle : **un paquet déclare ce qu'il importe, même si ça marche sans.** Le
+hoisting est une optimisation de disque, pas un contrat.
+
+Corollaire pour la vérification : la CI et Vercel n'installent pas la même
+chose, donc une CI verte ne garantit pas un déploiement vert. La commande qui
+reproduit la condition Vercel est dans [DEPLOY.md](DEPLOY.md).
+
+---
+
 ## À trancher
 
 - **Le nom et le domaine.** *Zero Player* est retenu à titre provisoire.

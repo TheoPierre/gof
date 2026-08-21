@@ -40,6 +40,28 @@ L'hébergeur du plan. Rien de particulier à configurer :
 
 Aucune variable d'environnement n'est nécessaire à ce stade.
 
+### La règle à retenir sur le monorepo
+
+**Vercel n'installe que les dépendances du workspace visé, jamais les
+`devDependencies` de la racine.** Tout ce dont `next build` a besoin doit donc
+être déclaré dans `apps/lab/package.json`, même si npm le hoiste gentiment
+depuis la racine sur ta machine.
+
+C'est ce qui a fait échouer le premier déploiement : `typescript` n'existait
+qu'à la racine, Next a essayé de le rattraper seul — avec yarn, créant un
+lockfile concurrent — et le build est mort sur `Cannot find module
+'typescript'`.
+
+Pour reproduire la condition de Vercel avant de pousser :
+
+```bash
+rm -rf node_modules
+npm ci -w @zp/lab --include-workspace-root=false
+npm run build -w @zp/lab
+```
+
+Si ça passe là, ça passera sur Vercel.
+
 ## Autre hébergeur
 
 `npm run build -w @zp/lab` puis `npm run start -w @zp/lab`. Un reverse proxy
