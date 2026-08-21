@@ -356,11 +356,34 @@ reproduit la condition Vercel est dans [DEPLOY.md](DEPLOY.md).
 
 ---
 
-## À trancher
+### D-021 — Le nom reste Zero Player, le domaine sera un .gg
+**2026-08-21**
 
-- **Le nom et le domaine.** *Zero Player* est retenu à titre provisoire.
-  Alternatives écartées mais notées : *Soup*, *Still Life* (trop pris),
-  *B3/S23* (illisible hors initiés).
+`zeroplayer.com` est pris. Vérification faite sur les enregistrements de
+serveurs de noms, **`zeroplayer.gg`, `.dev`, `.io` et `.app` ne le sont pas**.
+
+Le nom n'était donc pas à changer, seulement à sécuriser. `.gg` plutôt que
+`.com` : il dit « jeu » instantanément, ce qui est exactement le positionnement
+chess.com, et sur une marque de jeu l'absence de `.com` ne coûte plus grand
+chose. Tout le code, le scope `@zp/` et la documentation l'utilisent déjà —
+changer aurait coûté du travail pour rien.
+
+Alternatives vérifiées libres, gardées en réserve : `b3s23.gg` et `b3s23.io`
+(la règle comme marque — superbe auprès des connaisseurs, illisible pour les
+autres, bon candidat en redirection), `pentomino.gg`, `eater.gg`,
+`oscillator.gg`. Écartés car pris : `lifelike` sur tous les TLD utiles,
+`glider.gg`, `soup.gg`, `methuselah.dev`, `quiescent.dev`.
+
+**Réserve :** l'absence de serveurs de noms est un indice fort, pas une preuve
+— un domaine peut être enregistré sans être délégué. À confirmer chez un
+registrar.
+
+Une fois le domaine acquis, poser `NEXT_PUBLIC_SITE_URL` sur Vercel : les URL
+absolues des aperçus de lien en dépendent.
+
+---
+
+## À trancher
 - **Licences de contenu.** Le LifeWiki est en CC BY-SA : attribution
   obligatoire, et la clause de partage à l'identique demande un examen pour une
   base dérivée. Conditions de Catagolue et de la collection Golly à vérifier
