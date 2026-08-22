@@ -40,6 +40,9 @@ export interface Dict {
     edgesDead: string;
     sharedTitle: string;
     toolbar: string;
+    toolDraw: string;
+    toolErase: string;
+    toolPan: string;
     hint: string;
     hintArmed: (name: string) => string;
     canvasLabel: string;
@@ -180,6 +183,9 @@ const en: Dict = {
     edgesDead: 'Dead edges',
     sharedTitle: 'Memory shared between the worker and the renderer',
     toolbar: 'Simulation controls',
+    toolDraw: 'Draw (D)',
+    toolErase: 'Erase (E)',
+    toolPan: 'Pan (H)',
     hint: 'Drag to draw · Shift to erase · Scroll to zoom · Right-click to pan · Space, →, F, C, R',
     hintArmed: (name) => `${name} — click the grid to drop it, Esc to cancel`,
     canvasLabel:
@@ -347,6 +353,9 @@ const fr: Dict = {
     edgesDead: 'Bords morts',
     sharedTitle: 'Mémoire partagée entre le worker et le rendu',
     toolbar: 'Contrôles de la simulation',
+    toolDraw: 'Dessiner (D)',
+    toolErase: 'Effacer (E)',
+    toolPan: 'Déplacer (H)',
     hint: 'Glisser pour dessiner · Maj pour effacer · Molette pour zoomer · Clic droit pour déplacer · Espace, →, F, C, R',
     hintArmed: (name) => `${name} — clique la grille pour le déposer, Échap pour annuler`,
     canvasLabel:
