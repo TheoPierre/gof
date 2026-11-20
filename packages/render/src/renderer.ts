@@ -50,6 +50,12 @@ export interface Frame {
   wordsPerRow: number;
   width: number;
   height: number;
+  /**
+   * Nécessaire à la rémanence : le rendu tourne à 60 images par seconde, la
+   * simulation à 30 générations. Sans ce repère, l'historique se décalerait à
+   * chaque image et les traînées clignoteraient.
+   */
+  generation?: number | undefined;
 }
 
 export interface RenderStyle {
@@ -63,6 +69,13 @@ export interface RenderStyle {
   edge: string;
   /** Curseur de navigation clavier. */
   cursor: string;
+  /**
+   * Rémanence phosphore. Absent : rendu binaire, une cellule s'éteint d'un
+   * coup. Présent : elle s'éteint en deux trames et les naissances ont un
+   * éclat plus vif — c'est ce qui sépare une grille qui clignote d'un
+   * organisme qui respire.
+   */
+  trail?: { born: string; fade1: string; fade2: string } | undefined;
 }
 
 export interface Overlay {
@@ -83,6 +96,16 @@ export interface RenderStats {
   milliseconds: number;
 }
 
+/**
+ * Une couche de rendu : une couleur, et le masque de bits qui la reçoit.
+ * `cur` est la trame courante, `p1` la génération précédente, `p2` celle
+ * d'avant. Les quatre masques sont disjoints par construction.
+ */
+interface Layer {
+  colour: string;
+  mask: (cur: number, p1: number, p2: number) => number;
+}
+
 /** En dessous, une cellule est trop petite pour un rectangle : on passe aux pixels. */
 const PIXEL_MODE_BELOW = 3;
 /** Au-dessus, on trace le quadrillage. */
@@ -92,6 +115,22 @@ export class GridRenderer {
   #ctx: Ctx2DLike;
   #image: ImageDataLike | null = null;
   #imageWords: Uint32Array | null = null;
+
+  /**
+   * Trois tampons, pas deux.
+   *
+   * `#gen1` et `#gen2` sont les deux générations précédentes, figées pendant
+   * toute la durée d'affichage de la génération courante. `#saved` accumule la
+   * trame en cours pour devenir `#gen1` au prochain changement de génération.
+   *
+   * Sans ce troisième tampon, la rotation se ferait à la fin de la première
+   * image d'une génération et les images suivantes de la *même* génération
+   * afficheraient une rémanence différente — un scintillement à 60 Hz.
+   */
+  #gen1: Uint32Array | null = null;
+  #gen2: Uint32Array | null = null;
+  #saved: Uint32Array | null = null;
+  #lastGeneration = Number.NaN;
 
   style: RenderStyle;
 
@@ -126,12 +165,14 @@ export class GridRenderer {
     ctx.fillRect(fieldX, fieldY, fieldW, fieldH);
 
     const range = viewport.visibleCells(frame.width, frame.height);
+    this.#advanceHistory(frame);
+    const layers = this.#layers();
 
     let stats: RenderStats;
     if (range.x1 < range.x0 || range.y1 < range.y0) {
       stats = { drawn: 0, wordsScanned: 0, mode: 'rects', milliseconds: 0 };
     } else if (scale >= PIXEL_MODE_BELOW) {
-      stats = this.#drawRects(frame, range, scale, originX, originY);
+      stats = this.#drawRects(frame, range, scale, originX, originY, layers);
       if (scale >= GRID_LINES_ABOVE) {
         this.#drawGrid(range, scale, originX, originY, deviceWidth, deviceHeight);
       }
@@ -144,8 +185,11 @@ export class GridRenderer {
         originY,
         deviceWidth,
         deviceHeight,
+        layers,
       );
     }
+
+    if (this.#saved) this.#saved.set(frame.bits);
 
     ctx.strokeStyle = this.style.edge;
     ctx.lineWidth = Math.max(1, dpr);
@@ -177,6 +221,46 @@ export class GridRenderer {
     return stats;
   }
 
+  /**
+   * Découpe la trame en couches de rémanence. Sans `style.trail`, une seule
+   * couche : le rendu binaire d'avant.
+   */
+  #layers(): Layer[] {
+    const trail = this.style.trail;
+    if (!trail || !this.#gen1 || !this.#gen2) {
+      return [{ colour: this.style.cell, mask: (cur) => cur }];
+    }
+    // Du plus éteint au plus vif : les couches se peignent dans cet ordre.
+    return [
+      { colour: trail.fade2, mask: (cur, p1, p2) => p2 & ~p1 & ~cur },
+      { colour: trail.fade1, mask: (cur, p1) => p1 & ~cur },
+      { colour: this.style.cell, mask: (cur, p1) => cur & p1 },
+      { colour: trail.born, mask: (cur, p1) => cur & ~p1 },
+    ];
+  }
+
+  /**
+   * Fait tourner l'historique, une seule fois par génération et *avant* le
+   * dessin : toutes les images d'une même génération montrent la même chose.
+   */
+  #advanceHistory(frame: Frame): void {
+    if (!this.style.trail) return;
+
+    const size = frame.bits.length;
+    if (!this.#gen1 || this.#gen1.length !== size) {
+      this.#gen1 = new Uint32Array(size);
+      this.#gen2 = new Uint32Array(size);
+      this.#saved = new Uint32Array(size);
+      this.#lastGeneration = Number.NaN;
+    }
+
+    const generation = frame.generation ?? 0;
+    if (generation === this.#lastGeneration) return;
+    this.#lastGeneration = generation;
+    this.#gen2!.set(this.#gen1);
+    this.#gen1.set(this.#saved!);
+  }
+
   // ─────────────────────── Régime « rectangles » ───────────────────────
 
   #drawRects(
@@ -185,9 +269,9 @@ export class GridRenderer {
     scale: number,
     originX: number,
     originY: number,
+    layers: Layer[],
   ): RenderStats {
     const ctx = this.#ctx;
-    ctx.fillStyle = this.style.cell;
 
     // Un jour d'un pixel entre les cellules dès qu'elles sont assez grandes :
     // c'est ce qui donne l'aspect « grille » sans tracer une seule ligne.
@@ -196,29 +280,38 @@ export class GridRenderer {
 
     const wordStart = range.x0 >>> 5;
     const wordEnd = range.x1 >>> 5;
+    const g1 = this.#gen1;
+    const g2 = this.#gen2;
     let drawn = 0;
     let wordsScanned = 0;
 
-    for (let y = range.y0; y <= range.y1; y++) {
-      const rowOffset = y * frame.wordsPerRow;
-      const py = Math.round(y * scale + originY);
+    // Une passe par couche : la couleur ne change qu'une fois par couche au
+    // lieu d'une fois par cellule, et les mots nuls se sautent aussi vite.
+    for (const layer of layers) {
+      ctx.fillStyle = layer.colour;
 
-      for (let w = wordStart; w <= wordEnd; w++) {
-        let word = frame.bits[rowOffset + w]!;
-        wordsScanned++;
-        if (word === 0) continue;
+      for (let y = range.y0; y <= range.y1; y++) {
+        const rowOffset = y * frame.wordsPerRow;
+        const py = Math.round(y * scale + originY);
 
-        const baseX = w << 5;
-        while (word !== 0) {
-          // Bit de poids le plus faible encore allumé.
-          const lowest = word & -word;
-          const bit = 31 - Math.clz32(lowest);
-          const x = baseX + bit;
-          if (x >= range.x0 && x <= range.x1) {
-            ctx.fillRect(Math.round(x * scale + originX), py, size, size);
-            drawn++;
+        for (let w = wordStart; w <= wordEnd; w++) {
+          const i = rowOffset + w;
+          let word = layer.mask(frame.bits[i]!, g1 ? g1[i]! : 0, g2 ? g2[i]! : 0);
+          wordsScanned++;
+          if (word === 0) continue;
+
+          const baseX = w << 5;
+          while (word !== 0) {
+            // Bit de poids le plus faible encore allumé.
+            const lowest = word & -word;
+            const bit = 31 - Math.clz32(lowest);
+            const x = baseX + bit;
+            if (x >= range.x0 && x <= range.x1) {
+              ctx.fillRect(Math.round(x * scale + originX), py, size, size);
+              drawn++;
+            }
+            word ^= lowest;
           }
-          word ^= lowest;
         }
       }
     }
@@ -236,6 +329,7 @@ export class GridRenderer {
     originY: number,
     deviceWidth: number,
     deviceHeight: number,
+    layers: Layer[],
   ): RenderStats {
     const ctx = this.#ctx;
 
@@ -252,35 +346,41 @@ export class GridRenderer {
     // Le fond est peint dans le tampon lui-même : putImageData remplace les
     // pixels au lieu de composer, un fond transparent effacerait le canvas.
     pixels.fill(packColour(this.style.field));
-    const cellColour = packColour(this.style.cell);
 
     const wordStart = range.x0 >>> 5;
     const wordEnd = range.x1 >>> 5;
+    const g1 = this.#gen1;
+    const g2 = this.#gen2;
     let drawn = 0;
     let wordsScanned = 0;
 
-    for (let y = range.y0; y <= range.y1; y++) {
-      const rowOffset = y * frame.wordsPerRow;
-      const py = (y * scale + originY) | 0;
-      if (py < 0 || py >= deviceHeight) continue;
-      const rowBase = py * deviceWidth;
+    for (const layer of layers) {
+      const colour = packColour(layer.colour);
 
-      for (let w = wordStart; w <= wordEnd; w++) {
-        let word = frame.bits[rowOffset + w]!;
-        wordsScanned++;
-        if (word === 0) continue;
+      for (let y = range.y0; y <= range.y1; y++) {
+        const rowOffset = y * frame.wordsPerRow;
+        const py = (y * scale + originY) | 0;
+        if (py < 0 || py >= deviceHeight) continue;
+        const rowBase = py * deviceWidth;
 
-        const baseX = w << 5;
-        while (word !== 0) {
-          const lowest = word & -word;
-          const bit = 31 - Math.clz32(lowest);
-          const x = baseX + bit;
-          word ^= lowest;
-          if (x < range.x0 || x > range.x1) continue;
-          const px = (x * scale + originX) | 0;
-          if (px < 0 || px >= deviceWidth) continue;
-          pixels[rowBase + px] = cellColour;
-          drawn++;
+        for (let w = wordStart; w <= wordEnd; w++) {
+          const i = rowOffset + w;
+          let word = layer.mask(frame.bits[i]!, g1 ? g1[i]! : 0, g2 ? g2[i]! : 0);
+          wordsScanned++;
+          if (word === 0) continue;
+
+          const baseX = w << 5;
+          while (word !== 0) {
+            const lowest = word & -word;
+            const bit = 31 - Math.clz32(lowest);
+            const x = baseX + bit;
+            word ^= lowest;
+            if (x < range.x0 || x > range.x1) continue;
+            const px = (x * scale + originX) | 0;
+            if (px < 0 || px >= deviceWidth) continue;
+            pixels[rowBase + px] = colour;
+            drawn++;
+          }
         }
       }
     }

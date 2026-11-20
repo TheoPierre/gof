@@ -6,22 +6,43 @@
  */
 
 :root {
-  --zp-void: #06060a;
-  --zp-field: #0a0a0e;
-  --zp-surface: #101015;
-  --zp-raised: #16161c;
+  /* Neutres biaisés bleu : c'est l'opposition froide qui fait chanter
+     l'ambre. Sur un gris neutre, il s'éteint. */
+  --zp-void: #0a0c10;
+  --zp-field: #06070a;
+  --zp-surface: #11141a;
+  --zp-raised: #171b23;
 
-  --zp-amber: #ff9b3d;
-  --zp-amber-dim: #a8672a;
-  --zp-amber-faint: rgba(255, 155, 61, 0.1);
-  --zp-grid: rgba(255, 155, 61, 0.07);
-  --zp-edge: rgba(255, 155, 61, 0.28);
+  /* Plaque 1 — la vie. Cellules, état en marche, action primaire.
+     Jamais un titre, jamais une étiquette, jamais une bordure décorative. */
+  --zp-amber: #ffb454;
+  --zp-amber-dim: #c97b22;
+  --zp-amber-faint: rgba(255, 180, 84, 0.1);
 
-  --zp-text: #e9e3d8;
-  --zp-muted: #7d7668;
-  --zp-line: rgba(255, 155, 61, 0.14);
+  /* Plaque 2 — l'interface. Sélection, outil actif, focus, liens.
+     Froid, il recule ; l'ambre avance. */
+  --zp-cyan: #5fd3f3;
+  --zp-cyan-faint: rgba(95, 211, 243, 0.1);
 
-  --zp-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace;
+  --zp-grid: rgba(255, 180, 84, 0.06);
+  --zp-edge: rgba(255, 180, 84, 0.26);
+
+  --zp-text: #e6e8ec;
+  /* 6,9:1 sur la surface. L'ancien #7d7668 plafonnait à 4,21:1, sous le
+     minimum WCAG, et servait à 10 px. C'était là l'illisibilité. */
+  --zp-muted: #98a0ae;
+  --zp-faint: #6b7482;
+  --zp-line: rgba(150, 170, 200, 0.12);
+  --zp-line-firm: rgba(150, 170, 200, 0.22);
+
+  --zp-bad: #ff6b4a;
+  --zp-good: #5fd39b;
+
+  --zp-sans: var(--font-zp-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --zp-mono: var(--font-zp-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Verre sombre du chrome flottant. */
+  --zp-glass: rgba(17, 20, 26, 0.82);
 }
 
 * {
@@ -34,8 +55,9 @@ body {
   margin: 0;
   background: var(--zp-void);
   color: var(--zp-text);
-  font-family: var(--zp-mono);
-  font-size: 13px;
+  font-family: var(--zp-sans);
+  font-size: 15px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
 }
@@ -44,104 +66,28 @@ button {
   font: inherit;
 }
 
-/* ─────────────────────────── Mise en page ─────────────────────────── */
+/* Le monospace est une police de données, pas de lecture. Il ne sert plus
+   qu'aux compteurs, aux étiquettes en capitales et au RLE. */
+.mono,
+code,
+kbd {
+  font-family: var(--zp-mono);
+}
+/* ══════════════════════════════════════════════════════════════════
+   Le Labo — le canevas est le sol, tout le reste flotte dessus.
+   Une action primaire, quatre outils, le reste à la demande.
+   ══════════════════════════════════════════════════════════════════ */
 
 .lab {
-  display: flex;
-  flex-direction: column;
-  height: 100dvh;
-  gap: 8px;
-  padding: 10px;
-}
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  background: var(--zp-surface);
-  border: 1px solid var(--zp-line);
-  border-radius: 6px;
-}
-
-.toolbar-controls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-.toolbar-status {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-left: auto;
-  flex: none;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 11px;
-  background: transparent;
-  color: var(--zp-amber);
-  border: 1px solid var(--zp-line);
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  transition: background 120ms ease, border-color 120ms ease;
-}
-
-.btn:hover {
-  background: var(--zp-amber-faint);
-  border-color: var(--zp-edge);
-}
-
-.btn:active {
-  transform: translateY(1px);
-}
-
-.btn[aria-pressed='true'] {
-  background: var(--zp-amber);
-  border-color: var(--zp-amber);
-  color: var(--zp-void);
-}
-
-.btn:focus-visible {
-  outline: 2px solid var(--zp-amber);
-  outline-offset: 2px;
-}
-
-.readout {
-  display: flex;
-  gap: 16px;
-  align-items: baseline;
-  color: var(--zp-muted);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-}
-
-.readout b {
-  color: var(--zp-amber);
-  font-weight: 600;
-}
-
-.stage {
-  flex: 1;
   position: relative;
-  min-height: 0;
-  border: 1px solid var(--zp-line);
-  border-radius: 6px;
+  height: 100dvh;
   overflow: hidden;
   background: var(--zp-field);
 }
 
-.stage canvas {
+.field {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -149,64 +95,321 @@ button {
   cursor: crosshair;
 }
 
-.stage[data-tool='pan'] canvas {
+.lab[data-tool='pan'] .field {
   cursor: grab;
 }
-
-.stage[data-tool='pan'][data-dragging='true'] canvas {
+.lab[data-tool='pan'][data-dragging='true'] .field {
   cursor: grabbing;
 }
+.lab[data-tool='place'] .field {
+  cursor: copy;
+}
+.lab[data-tool='erase'] .field {
+  cursor: cell;
+}
+.field:focus-visible {
+  outline: 2px solid var(--zp-cyan);
+  outline-offset: -3px;
+}
 
-.hint {
+/* Verre sombre posé sur la simulation : le chrome respire avec elle. */
+.chrome {
   position: absolute;
-  left: 12px;
-  bottom: 10px;
-  color: var(--zp-muted);
+  z-index: 2;
+  background: var(--zp-glass);
+  backdrop-filter: blur(16px) saturate(1.25);
+  -webkit-backdrop-filter: blur(16px) saturate(1.25);
+  border: 1px solid var(--zp-line);
+  border-radius: 10px;
+}
+
+/* ── Barre supérieure : plaque signalétique, pas tableau de bord ── */
+
+.topbar {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 14px;
+  border-radius: 0;
+  border-width: 0 0 1px;
+}
+
+.brand {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--zp-text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.brand em {
+  font-style: normal;
+  color: var(--zp-amber);
+}
+.brand:hover {
+  color: var(--zp-cyan);
+}
+
+.topbar-meta {
+  font-family: var(--zp-mono);
   font-size: 11px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--zp-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar-grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.topbar-links {
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+}
+.topbar-links a {
+  color: var(--zp-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.topbar-links a:hover {
+  color: var(--zp-cyan);
+}
+@media (max-width: 780px) {
+  .topbar-links,
+  .topbar-meta {
+    display: none;
+  }
+}
+
+/* ── Rail d'outils : la grammaire d'un éditeur graphique ── */
+
+.toolrail {
+  left: 10px;
+  top: 54px;
+  width: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 5px;
+}
+
+/* ── Dock de transport : la grammaire d'un lecteur vidéo ── */
+
+.dock {
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+}
+
+.dock-sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 3px 3px;
+  background: var(--zp-line);
+}
+
+/* ── Relevé : c'est ici que le monospace est à sa place ── */
+
+.readout {
+  position: absolute;
+  z-index: 2;
+  left: 64px;
+  bottom: 18px;
+  display: flex;
+  gap: 14px;
+  font-family: var(--zp-mono);
+  font-size: 11.5px;
+  color: var(--zp-faint);
+  font-variant-numeric: tabular-nums;
   pointer-events: none;
-  text-shadow: 0 1px 3px var(--zp-void);
+  text-shadow: 0 1px 4px var(--zp-field);
+}
+.readout b {
+  color: var(--zp-muted);
+  font-weight: 500;
+}
+@media (max-width: 640px) {
+  .readout {
+    left: 10px;
+    bottom: 74px;
+  }
+}
+
+/* ── Boutons ── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px 13px;
+  background: transparent;
+  color: var(--zp-text);
+  border: 1px solid var(--zp-line-firm);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.btn:hover:not(:disabled) {
+  background: rgba(150, 170, 200, 0.08);
+  border-color: var(--zp-cyan);
+}
+.btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+.btn:focus-visible {
+  outline: 2px solid var(--zp-cyan);
+  outline-offset: 2px;
+}
+
+/* Le seul bouton plein de la page. */
+.btn-primary {
+  background: var(--zp-amber);
+  border-color: var(--zp-amber);
+  color: #14100a;
+  font-weight: 600;
+  min-width: 108px;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #ffc275;
+  border-color: #ffc275;
+}
+
+.btn-icon {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-size: 15px;
+  border-color: transparent;
+  color: var(--zp-muted);
+}
+.btn-icon:hover:not(:disabled) {
+  color: var(--zp-text);
+}
+.btn-icon[aria-pressed='true'] {
+  background: var(--zp-cyan-faint);
+  border-color: var(--zp-cyan);
+  color: var(--zp-cyan);
+}
+
+.btn-quiet {
+  border-color: transparent;
+  color: var(--zp-muted);
+  font-family: var(--zp-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+}
+.btn-quiet:hover:not(:disabled) {
+  color: var(--zp-text);
 }
 
 .badge {
-  padding: 3px 7px;
+  padding: 4px 8px;
   border: 1px solid var(--zp-line);
-  border-radius: 3px;
-  color: var(--zp-muted);
-  font-size: 11px;
-  letter-spacing: 0.05em;
+  border-radius: 4px;
+  font-family: var(--zp-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--zp-faint);
+  white-space: nowrap;
 }
-
 .badge[data-on='true'] {
-  color: var(--zp-amber);
-  border-color: var(--zp-edge);
+  color: var(--zp-cyan);
+  border-color: rgba(95, 211, 243, 0.35);
 }
 
-.stage[data-tool='place'] canvas {
-  cursor: copy;
+.select {
+  padding: 6px 9px;
+  background: var(--zp-raised);
+  color: var(--zp-text);
+  border: 1px solid var(--zp-line-firm);
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.select:focus-visible {
+  outline: 2px solid var(--zp-cyan);
+  outline-offset: 1px;
 }
 
-.stage canvas:focus-visible {
-  outline: 2px solid var(--zp-amber);
-  outline-offset: -2px;
+/* ── Indices et liens de pied ── */
+
+.hint {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 66px;
+  color: var(--zp-faint);
+  font-size: 11.5px;
+  pointer-events: none;
+  text-shadow: 0 1px 4px var(--zp-field);
+  text-align: center;
+  max-width: 90vw;
 }
 
-/* ─────────────────────────── Panneaux ─────────────────────────── */
-
-.workspace {
+.stage-links {
+  position: absolute;
+  z-index: 2;
+  right: 12px;
+  bottom: 18px;
   display: flex;
-  flex: 1;
-  gap: 8px;
-  min-height: 0;
+  gap: 14px;
+  font-size: 11.5px;
 }
+.stage-links a {
+  color: var(--zp-faint);
+  text-decoration: none;
+  text-shadow: 0 1px 4px var(--zp-field);
+}
+.stage-links a:hover {
+  color: var(--zp-cyan);
+}
+.stage-links a:focus-visible {
+  outline: 2px solid var(--zp-cyan);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+@media (max-width: 900px) {
+  .stage-links {
+    display: none;
+  }
+}
+
+/* ── Tiroir : fermé au premier écran ── */
 
 .panel {
+  position: absolute;
+  z-index: 3;
+  right: 10px;
+  top: 54px;
+  bottom: 14px;
+  width: 322px;
+  max-width: calc(100vw - 20px);
   display: flex;
   flex-direction: column;
-  width: 320px;
-  flex: none;
-  background: var(--zp-surface);
+  background: var(--zp-glass);
+  backdrop-filter: blur(16px) saturate(1.25);
+  -webkit-backdrop-filter: blur(16px) saturate(1.25);
   border: 1px solid var(--zp-line);
-  border-radius: 6px;
+  border-radius: 10px;
   overflow: hidden;
 }
 
@@ -215,51 +418,49 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 9px 10px;
+  padding: 11px 12px;
   border-bottom: 1px solid var(--zp-line);
-  color: var(--zp-amber);
+  color: var(--zp-cyan);
+  font-family: var(--zp-mono);
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .panel-body {
   flex: 1;
   overflow: auto;
-  padding: 10px;
+  padding: 12px;
   scrollbar-width: thin;
-  scrollbar-color: var(--zp-amber-dim) transparent;
+  scrollbar-color: var(--zp-line-firm) transparent;
 }
-
 .panel-body::-webkit-scrollbar {
   width: 8px;
 }
-
 .panel-body::-webkit-scrollbar-thumb {
-  background: var(--zp-amber-dim);
+  background: var(--zp-line-firm);
   border-radius: 6px;
-  border: 2px solid var(--zp-surface);
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 .icon-btn {
   background: transparent;
   border: 0;
-  color: var(--zp-muted);
+  color: var(--zp-faint);
   cursor: pointer;
   padding: 2px 6px;
   border-radius: 3px;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1;
 }
-
 .icon-btn:hover {
-  color: var(--zp-amber);
-  background: var(--zp-amber-faint);
+  color: var(--zp-cyan);
+  background: var(--zp-cyan-faint);
 }
-
 .icon-btn:focus-visible {
-  outline: 2px solid var(--zp-amber);
+  outline: 2px solid var(--zp-cyan);
   outline-offset: 1px;
 }
 
@@ -267,7 +468,7 @@ button {
 
 .cat-title {
   color: var(--zp-muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -323,15 +524,15 @@ button {
 }
 
 .pattern-name {
-  color: var(--zp-amber);
-  font-size: 11px;
+  color: var(--zp-text);
+  font-size: 12.5px;
   font-weight: 600;
   line-height: 1.25;
 }
 
 .pattern-note {
   color: var(--zp-muted);
-  font-size: 10px;
+  font-size: 11.5px;
   line-height: 1.35;
 }
 
@@ -350,6 +551,7 @@ button {
   flex-wrap: wrap;
 }
 
+/* Le RLE est de la donnée : le monospace y est légitime. */
 .textarea {
   flex: 1;
   min-height: 160px;
@@ -360,8 +562,8 @@ button {
   border: 1px solid var(--zp-line);
   border-radius: 4px;
   font-family: var(--zp-mono);
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .textarea:focus-visible {
@@ -387,7 +589,7 @@ button {
 
 .note {
   color: var(--zp-muted);
-  font-size: 10px;
+  font-size: 11.5px;
   line-height: 1.45;
 }
 

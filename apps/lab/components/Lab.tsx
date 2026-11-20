@@ -17,7 +17,7 @@ const SPEEDS = [5, 15, 30, 60, 120];
 const DEFAULT_SPEED = 2;
 const SIZES = [256, 512, 1024, 2048];
 
-type Tool = 'draw' | 'pan';
+type Tool = 'draw' | 'erase' | 'pan';
 type Panel = 'patterns' | 'rle' | null;
 type Armed = { id: string; rle: string; name: string } | null;
 
@@ -50,9 +50,9 @@ export default function Lab({ locale }: { locale: Locale }) {
   // Sur un écran étroit le panneau recouvre la grille : il part fermé, sinon
   // le premier écran ne montre rien de jouable. Le composant n'est jamais
   // rendu côté serveur (voir LabClient), `matchMedia` est donc sûr ici.
-  const [panel, setPanel] = useState<Panel>(() =>
-    globalThis.matchMedia?.('(max-width: 860px)').matches ? null : 'patterns',
-  );
+  // Fermé au premier écran, sur toutes les tailles. Ce qu'un visiteur doit
+  // voir en arrivant, c'est la simulation qui tourne — pas un catalogue.
+  const [panel, setPanel] = useState<Panel>(null);
   const [armed, setArmed] = useState<Armed>(null);
   const [exported, setExported] = useState<string | null>(null);
   const [size, setSize] = useState(512);
@@ -124,6 +124,7 @@ export default function Lab({ locale }: { locale: Locale }) {
             wordsPerRow: client.wordsPerRow,
             width: client.width,
             height: client.height,
+            generation: frame.generation,
           },
           viewport,
           dpr,
@@ -268,7 +269,9 @@ export default function Lab({ locale }: { locale: Locale }) {
       // Un point d'histoire au début du geste : tout le trait s'annulera d'un
       // seul coup, pas cellule par cellule.
       clientRef.current?.send({ type: 'checkpoint' });
-      dragging = event.shiftKey ? 'erase' : 'paint';
+      // Maj inverse l'outil courant : on efface en dessin, on dessine en gomme.
+      const erasing = toolRef.current === 'erase' ? !event.shiftKey : event.shiftKey;
+      dragging = erasing ? 'erase' : 'paint';
       paintTo(point, dragging === 'paint');
     };
 
@@ -464,6 +467,15 @@ export default function Lab({ locale }: { locale: Locale }) {
           event.preventDefault();
           client.step(1);
           break;
+        case 'd':
+          setTool('draw');
+          break;
+        case 'e':
+          setTool('erase');
+          break;
+        case 'h':
+          setTool('pan');
+          break;
         case 'f':
           fit();
           break;
@@ -492,82 +504,23 @@ export default function Lab({ locale }: { locale: Locale }) {
   const cursorLabel = cursor ? d.cursorAt(cursor.x, cursor.y) : d.canvasLabel;
 
   return (
-    <div className="lab">
-      <div className="toolbar" role="toolbar" aria-label={d.toolbar}>
-        <div className="toolbar-controls">
-        <button className="btn" onClick={toggleRun} disabled={!ready}>
-          {running ? d.pause : d.run}
-        </button>
-        <button className="btn" onClick={() => clientRef.current?.step(1)} disabled={!ready}>
-          {d.step}
-        </button>
-        <button className="btn" onClick={cycleSpeed} disabled={!ready}>
-          {SPEEDS[speedIndex]} {d.perSecond}
-        </button>
+    <div className="lab" ref={stageRef} data-tool={armed ? 'place' : tool}>
+      <canvas
+        className="field"
+        ref={canvasRef}
+        tabIndex={0}
+        role="application"
+        aria-label={cursorLabel}
+      />
 
-        <span style={{ width: 6 }} />
-
-        <button
-          className="btn"
-          onClick={() => {
-            send({ type: 'undo' });
-            announce(a.undone);
-          }}
-          disabled={!canUndo}
-          title={d.undoTitle}
-        >
-          ↶
-        </button>
-        <button
-          className="btn"
-          onClick={() => {
-            send({ type: 'redo' });
-            announce(a.redone);
-          }}
-          disabled={!canRedo}
-          title={d.redoTitle}
-        >
-          ↷
-        </button>
-
-        <span style={{ width: 6 }} />
-
-        <button
-          className="btn"
-          onClick={() => {
-            send({ type: 'clear' });
-            announce(a.cleared);
-          }}
-          disabled={!ready}
-        >
-          {d.clear}
-        </button>
-        <button
-          className="btn"
-          disabled={!ready}
-          onClick={() => {
-            send({ type: 'randomise', density: 0.3, seed: (Math.random() * 2 ** 31) | 0 });
-            announce(a.newSoup);
-          }}
-        >
-          {d.soup}
-        </button>
-
-        <span style={{ width: 6 }} />
-
-        <button
-          className="btn"
-          aria-pressed={tool === 'pan'}
-          onClick={() => setTool(tool === 'pan' ? 'draw' : 'pan')}
-          disabled={!ready}
-        >
-          ✋
-        </button>
-        <button className="btn" onClick={fit} disabled={!ready}>
-          {d.fit}
-        </button>
-
-        <span style={{ width: 6 }} />
+      {/* Plaque signalétique. Ce n'est pas un tableau de bord : trois choses,
+          et la place de la simulation reste entière. */}
+      <header className="chrome topbar">
+        <a className="brand" href={`/${locale}`}>
+          ZERO&nbsp;<em>PLAYER</em>
+        </a>
+        <span className="topbar-meta">B3/S23</span>
+        <span className="topbar-grow" />
 
         <label className="sr-only" htmlFor="grid-size">
           {d.gridSize}
@@ -601,91 +554,178 @@ export default function Lab({ locale }: { locale: Locale }) {
         </select>
 
         <button
-          className="btn"
+          className="btn btn-quiet"
           aria-pressed={panel === 'patterns'}
           onClick={() => setPanel(panel === 'patterns' ? null : 'patterns')}
         >
           {d.patterns}
         </button>
         <button
-          className="btn"
+          className="btn btn-quiet"
           aria-pressed={panel === 'rle'}
           onClick={() => setPanel(panel === 'rle' ? null : 'rle')}
         >
           {d.rle}
         </button>
-        </div>
 
-        <div className="toolbar-status">
-        <div className="readout" aria-live="off">
-          <span>
-            {d.generation} <b>{stats.generation.toLocaleString(locale)}</b>
-          </span>
-          <span>
-            {d.alive} <b>{stats.population.toLocaleString(locale)}</b>
-          </span>
-          <span>
-            {d.zoom} <b>{stats.scale.toFixed(2)}×</b>
-          </span>
-        </div>
-        <span
-          className="badge"
-          data-on={shared}
-          title={d.sharedTitle}
-        >
+        <span className="badge" data-on={shared} title={d.sharedTitle}>
           {shared ? 'SAB' : 'postMessage'}
         </span>
-        </div>
+      </header>
+
+      {/* Rail d'outils : la grammaire d'un éditeur graphique. */}
+      <div
+        className="chrome toolrail"
+        role="toolbar"
+        aria-orientation="vertical"
+        aria-label={d.toolbar}
+      >
+        <button
+          className="btn btn-icon"
+          aria-pressed={tool === 'draw'}
+          onClick={() => setTool('draw')}
+          disabled={!ready}
+          title={d.toolDraw}
+        >
+          ✎
+        </button>
+        <button
+          className="btn btn-icon"
+          aria-pressed={tool === 'erase'}
+          onClick={() => setTool('erase')}
+          disabled={!ready}
+          title={d.toolErase}
+        >
+          ⌫
+        </button>
+        <button
+          className="btn btn-icon"
+          aria-pressed={tool === 'pan'}
+          onClick={() => setTool('pan')}
+          disabled={!ready}
+          title={d.toolPan}
+        >
+          ✋
+        </button>
+
+        <div className="dock-sep" style={{ height: 1, width: 'auto', margin: '4px 2px' }} />
+
+        <button
+          className="btn btn-icon"
+          onClick={() => {
+            send({ type: 'undo' });
+            announce(a.undone);
+          }}
+          disabled={!canUndo}
+          title={d.undoTitle}
+        >
+          ↶
+        </button>
+        <button
+          className="btn btn-icon"
+          onClick={() => {
+            send({ type: 'redo' });
+            announce(a.redone);
+          }}
+          disabled={!canRedo}
+          title={d.redoTitle}
+        >
+          ↷
+        </button>
+        <button className="btn btn-icon" onClick={fit} disabled={!ready} title={d.fit}>
+          ⤢
+        </button>
       </div>
 
-      <div className="workspace">
-        <div className="stage" ref={stageRef} data-tool={armed ? 'place' : tool}>
-          <canvas
-            ref={canvasRef}
-            tabIndex={0}
-            role="application"
-            aria-label={cursorLabel}
-          />
-          <div className="hint">
-            {armed
-              ? d.hintArmed(armed.name)
-              : d.hint}
-          </div>
-          <div className="stage-links">
-            <a href="https://conwaylife.com/wiki/" rel="noreferrer noopener" target="_blank">
-              {d.attribution}
-            </a>
-            <a href={`/${locale}`}>Zero Player</a>
-            <a href={`/${locale}/patterns`}>{d.allPatterns}</a>
-            <a href={`/${locale}/about`}>{d.about}</a>
-          </div>
-        </div>
+      {/* Dock de transport : la grammaire d'un lecteur. Une seule action
+          primaire sur toute la page, et c'est celle-ci. */}
+      <div className="chrome dock">
+        <button className="btn btn-primary" onClick={toggleRun} disabled={!ready}>
+          {running ? d.pause : d.run}
+        </button>
+        <button
+          className="btn btn-icon"
+          onClick={() => clientRef.current?.step(1)}
+          disabled={!ready}
+          title={d.step}
+        >
+          ⇥
+        </button>
+        <button className="btn btn-quiet" onClick={cycleSpeed} disabled={!ready}>
+          {SPEEDS[speedIndex]} {d.perSecond}
+        </button>
 
-        {panel === 'patterns' ? (
-          <PatternPanel
-            locale={locale}
-            armedId={armed?.id ?? null}
-            onArm={(id, rle, name) => {
-              setArmed({ id, rle, name });
-              announce(a.armed(name));
-            }}
-            onClose={() => setPanel(null)}
-          />
-        ) : null}
+        <div className="dock-sep" />
 
-        {panel === 'rle' ? (
-          <RlePanel
-            locale={locale}
-            exported={exported}
-            onRequestExport={() => {
-              send({ type: 'snapshot' });
-              track({ name: 'rle_exported' });
-            }}
-            onImport={importRle}
-            onClose={() => setPanel(null)}
-          />
-        ) : null}
+        <button
+          className="btn btn-quiet"
+          onClick={() => {
+            send({ type: 'clear' });
+            announce(a.cleared);
+          }}
+          disabled={!ready}
+        >
+          {d.clear}
+        </button>
+        <button
+          className="btn btn-quiet"
+          disabled={!ready}
+          onClick={() => {
+            send({ type: 'randomise', density: 0.3, seed: (Math.random() * 2 ** 31) | 0 });
+            announce(a.newSoup);
+          }}
+        >
+          {d.soup}
+        </button>
       </div>
+
+      {/* Le monospace est à sa place ici, et nulle part ailleurs. */}
+      <div className="readout" aria-live="off">
+        <span>
+          {d.generation} <b>{stats.generation.toLocaleString(locale)}</b>
+        </span>
+        <span>
+          {d.alive} <b>{stats.population.toLocaleString(locale)}</b>
+        </span>
+        <span>
+          {d.zoom} <b>{stats.scale.toFixed(2)}×</b>
+        </span>
+      </div>
+
+      <div className="hint">{armed ? d.hintArmed(armed.name) : d.hint}</div>
+
+      <div className="stage-links">
+        <a href="https://conwaylife.com/wiki/" rel="noreferrer noopener" target="_blank">
+          {d.attribution}
+        </a>
+        <a href={`/${locale}/patterns`}>{d.allPatterns}</a>
+        <a href={`/${locale}/about`}>{d.about}</a>
+      </div>
+
+      {panel === 'patterns' ? (
+        <PatternPanel
+          locale={locale}
+          armedId={armed?.id ?? null}
+          onArm={(id, rle, name) => {
+            setArmed({ id, rle, name });
+            announce(a.armed(name));
+          }}
+          onClose={() => setPanel(null)}
+        />
+      ) : null}
+
+      {panel === 'rle' ? (
+        <RlePanel
+          locale={locale}
+          exported={exported}
+          onRequestExport={() => {
+            send({ type: 'snapshot' });
+            track({ name: 'rle_exported' });
+          }}
+          onImport={importRle}
+          onClose={() => setPanel(null)}
+        />
+      ) : null}
 
       <div className="sr-only" role="status" aria-live="polite">
         {announcement}
@@ -698,13 +738,29 @@ export default function Lab({ locale }: { locale: Locale }) {
 function readStyle(): RenderStyle {
   const css = getComputedStyle(document.documentElement);
   const token = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback;
+
+  // La rémanence est une animation permanente en fond : c'est exactement ce
+  // que prefers-reduced-motion vise. Sans elle, on retombe sur le rendu
+  // binaire, qui reste parfaitement lisible.
+  const calme = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  const amber = token('--zp-amber', '#ffb454');
+
   return {
-    surface: token('--zp-void', '#06060a'),
-    field: token('--zp-field', '#0a0a0e'),
-    cell: token('--zp-amber', '#ff9b3d'),
-    grid: '#1a140c',
-    edge: '#4a3418',
-    cursor: '#ffd9a8',
+    surface: token('--zp-void', '#0a0c10'),
+    field: token('--zp-field', '#06070a'),
+    cell: amber,
+    grid: 'rgba(255, 180, 84, 0.055)',
+    edge: token('--zp-edge', 'rgba(255, 180, 84, 0.26)'),
+    // Le curseur clavier appartient à l'interface, donc à la plaque cyan.
+    cursor: token('--zp-cyan', '#5fd3f3'),
+    trail: calme
+      ? undefined
+      : {
+          // Une cellule qui naît part en blanc chaud puis retombe sur l'ambre.
+          born: '#fff0d8',
+          fade1: 'rgba(255, 180, 84, 0.42)',
+          fade2: 'rgba(255, 180, 84, 0.15)',
+        },
   };
 }
 

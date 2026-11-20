@@ -1,4 +1,28 @@
 import { Analytics } from '@vercel/analytics/next';
+
+import { IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google';
+
+/**
+ * Polices auto-hébergées par next/font.
+ *
+ * Ce n'est pas une préférence : l'application sert COEP `require-corp` pour
+ * obtenir SharedArrayBuffer, et un <link> vers fonts.gstatic.com serait bloqué
+ * faute d'en-tête CORP. next/font télécharge les fichiers au build et les sert
+ * depuis notre propre origine — le problème disparaît.
+ */
+const plexSans = IBM_Plex_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-zp-sans',
+  display: 'swap',
+});
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-zp-mono',
+  display: 'swap',
+});
 import { notFound } from 'next/navigation';
 import type { Metadata, Viewport } from 'next';
 
@@ -69,7 +93,7 @@ export default async function LocaleLayout({
   if (!isLocale(locale)) notFound();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={`${plexSans.variable} ${plexMono.variable}`}>
       <body>
         {children}
         {/*

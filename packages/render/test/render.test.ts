@@ -295,3 +295,122 @@ test('packColour rend un pixel opaque', () => {
   assert.deepEqual([...bytes].sort((a, b) => a - b), [0x3d, 0x9b, 0xff, 0xff].sort((a, b) => a - b));
   assert.equal(packColour('#f93'), packColour('#ff9933'));
 });
+
+// ───────────────────── Rémanence phosphore ─────────────────────
+
+const TRAIL: RenderStyle = {
+  ...STYLE,
+  trail: { born: '#fff0d8', fade1: '#7f5a2a', fade2: '#2f2211' },
+};
+
+test('sans trail, le rendu reste binaire', () => {
+  const board = new Board(64, 8, 'bounded');
+  board.set(10, 4, 1);
+  const ctx = new FakeCtx();
+  const vp = new Viewport();
+  vp.resize(600, 200);
+  vp.scale = 6;
+  vp.centerX = 32;
+  vp.centerY = 4;
+
+  const r = new GridRenderer(ctx, STYLE);
+  r.render({ ...frameOf(board), generation: 0 }, vp, 1);
+  board.set(10, 4, 0);
+  board.set(11, 4, 1);
+  const stats = r.render({ ...frameOf(board), generation: 1 }, vp, 1);
+
+  assert.equal(stats.drawn, 1, 'une seule cellule, aucune traînée');
+});
+
+test('avec trail, une cellule qui meurt laisse deux trames de rémanence', () => {
+  const board = new Board(64, 8, 'bounded');
+  board.set(10, 4, 1);
+
+  const ctx = new FakeCtx();
+  const vp = new Viewport();
+  vp.resize(600, 200);
+  vp.scale = 6;
+  vp.centerX = 32;
+  vp.centerY = 4;
+  const r = new GridRenderer(ctx, TRAIL);
+
+  // Génération 0 : la cellule naît (aucun historique encore).
+  r.render({ ...frameOf(board), generation: 0 }, vp, 1);
+
+  // Génération 1 : elle est toujours là — couche « vivante ».
+  let s = r.render({ ...frameOf(board), generation: 1 }, vp, 1);
+  assert.equal(s.drawn, 1);
+
+  // Génération 2 : elle meurt. Il doit rester sa trace la plus vive.
+  board.set(10, 4, 0);
+  s = r.render({ ...frameOf(board), generation: 2 }, vp, 1);
+  assert.equal(s.drawn, 1, 'première trame de rémanence');
+  assert.equal(ctx.rects.at(-1)?.style, TRAIL.trail!.fade1);
+
+  // Génération 3 : la trace faiblit d'un cran.
+  s = r.render({ ...frameOf(board), generation: 3 }, vp, 1);
+  assert.equal(s.drawn, 1, 'seconde trame de rémanence');
+  assert.equal(ctx.rects.at(-1)?.style, TRAIL.trail!.fade2);
+
+  // Génération 4 : plus rien.
+  s = r.render({ ...frameOf(board), generation: 4 }, vp, 1);
+  assert.equal(s.drawn, 0, 'la trace est éteinte');
+});
+
+test('une naissance se distingue d\'une cellule déjà vivante', () => {
+  const board = new Board(64, 8, 'bounded');
+  const ctx = new FakeCtx();
+  const vp = new Viewport();
+  vp.resize(600, 200);
+  vp.scale = 6;
+  vp.centerX = 32;
+  vp.centerY = 4;
+  const r = new GridRenderer(ctx, TRAIL);
+
+  board.set(10, 4, 1);
+  r.render({ ...frameOf(board), generation: 0 }, vp, 1);
+  r.render({ ...frameOf(board), generation: 1 }, vp, 1);
+
+  board.set(11, 4, 1); // voisine nouvelle
+  ctx.rects.length = 0;
+  r.render({ ...frameOf(board), generation: 2 }, vp, 1);
+
+  const styles = ctx.rects.filter((x) => x.style !== STYLE.surface && x.style !== STYLE.field);
+  assert.equal(styles.length, 2);
+  assert.equal(styles[0]?.style, STYLE.cell, 'la cellule déjà vivante garde l\'ambre');
+  assert.equal(styles[1]?.style, TRAIL.trail!.born, 'la nouvelle a l\'éclat de naissance');
+});
+
+test('l\'historique ne tourne pas entre deux images de la même génération', () => {
+  // Le rendu tourne à 60 images/s pour 30 générations : sans ce garde-fou,
+  // les traînées clignoteraient une image sur deux.
+  const board = new Board(64, 8, 'bounded');
+  board.set(10, 4, 1);
+
+  const ctx = new FakeCtx();
+  const vp = new Viewport();
+  vp.resize(600, 200);
+  vp.scale = 6;
+  vp.centerX = 32;
+  vp.centerY = 4;
+  const r = new GridRenderer(ctx, TRAIL);
+
+  r.render({ ...frameOf(board), generation: 0 }, vp, 1);
+  r.render({ ...frameOf(board), generation: 1 }, vp, 1);
+  board.set(10, 4, 0);
+
+  // Trois images consécutives sur la même génération : résultat identique.
+  const a = r.render({ ...frameOf(board), generation: 2 }, vp, 1);
+  const styleA = ctx.rects.at(-1)?.style;
+  const b = r.render({ ...frameOf(board), generation: 2 }, vp, 1);
+  const styleB = ctx.rects.at(-1)?.style;
+  const c = r.render({ ...frameOf(board), generation: 2 }, vp, 1);
+  const styleC = ctx.rects.at(-1)?.style;
+
+  assert.equal(a.drawn, 1);
+  assert.equal(b.drawn, 1);
+  assert.equal(c.drawn, 1);
+  assert.equal(styleA, TRAIL.trail!.fade1);
+  assert.equal(styleB, styleA, 'image 2 identique');
+  assert.equal(styleC, styleA, 'image 3 identique');
+});

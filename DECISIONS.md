@@ -548,6 +548,62 @@ traduite.
 
 ---
 
+### D-030 — Le canevas est le sol, le chrome flotte dessus
+**2026-08-21**
+
+L'interface du Labo était incohérente et illisible, et c'était mesurable :
+101 éléments de texte sur 107 en chasse fixe, cinq tailles tenant dans quatre
+pixels (10 à 14 px), 46 % du texte en ambre, et **39 éléments à la fois sous
+12 px et sous le contraste minimum**. Le `--zp-muted` d'alors plafonnait à
+4,21:1 là où WCAG AA demande 4,5:1.
+
+La simulation, elle, était un panneau parmi les panneaux : 61 % de la largeur,
+dans une boîte à bordure, sous une barre de treize contrôles de poids égal où
+« Lancer » ressemblait à « RLE ».
+
+**Ce qui change.** Le canevas occupe tout l'écran ; le reste flotte dessus en
+verre sombre. Barre supérieure de 44 px (plaque signalétique), rail d'outils
+vertical à gauche (grammaire d'un éditeur graphique), dock de transport en bas
+au centre (grammaire d'un lecteur), tiroir droit **fermé au premier écran**.
+
+Règle de tri : **une action primaire, quatre outils, le reste à la demande.**
+Le dock porte le seul bouton plein de la page.
+
+**Deux plaques de couleur**, transposées de l'imprimerie : l'ambre est la vie
+(cellules, état en marche, action primaire — rien d'autre), le cyan est
+l'interface (sélection, outil actif, focus, liens). Les neutres prennent un
+biais bleu, parce que c'est l'opposition froide qui fait chanter l'ambre.
+
+**Deux familles**, IBM Plex Sans et Mono, le monospace réservé aux données.
+Après refonte : 0 élément sous 12 px et sous contraste, gris à 7,0:1.
+
+---
+
+### D-031 — Rémanence phosphore, et pourquoi il faut trois tampons
+**2026-08-21**
+
+Une cellule ne s'éteint plus d'un coup : elle passe par deux trames de
+rémanence, et une cellule qui naît part en blanc chaud. C'est du rendu pur,
+dans `GridRenderer` — le moteur n'est pas touché.
+
+Le découpage se fait par masques de bits disjoints sur les mots de 32 bits :
+`p2 & ~p1 & ~cur` (le plus éteint), `p1 & ~cur`, `cur & p1`, `cur & ~p1`
+(la naissance). Une passe par couche, la couleur ne change qu'une fois par
+couche au lieu d'une fois par cellule.
+
+**Trois tampons d'historique, pas deux.** Le rendu tourne à 60 images par
+seconde pour 30 générations : chaque génération est donc affichée deux fois.
+Avec deux tampons, la rotation avait lieu à la fin de la première image et les
+images suivantes de la *même* génération montraient une rémanence différente —
+un scintillement à 60 Hz. Le troisième tampon accumule la trame courante, et la
+rotation se fait **avant** le dessin, une seule fois par génération. Un test
+l'a attrapé, et le vérifie.
+
+La rémanence s'annule sous `prefers-reduced-motion` : c'est une animation
+permanente en fond, exactement ce que ce réglage vise.
+
+---
+
 ## À trancher
 - **Licences de contenu.** Le LifeWiki est en CC BY-SA : attribution
   obligatoire, et la clause de partage à l'identique demande un examen pour une
